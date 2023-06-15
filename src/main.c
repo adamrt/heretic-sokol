@@ -24,7 +24,7 @@ static void init(void) {
     };
 }
 
-static void frame(void) {
+static void gui(void) {
     simgui_new_frame(&(simgui_frame_desc_t){
         .width = sapp_width(),
         .height = sapp_height(),
@@ -37,20 +37,30 @@ static void frame(void) {
     igBegin("Dear ImGui!", 0, ImGuiWindowFlags_None);
     igColorEdit3("Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
     igEnd();
+}
+
+static void frame(void) {
+    gui();
 
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
+
     simgui_render();
     sg_end_pass();
     sg_commit();
 }
 
+static void event(const sapp_event* ev) {
+    simgui_handle_event(ev);
+    if (ev->type == SAPP_EVENTTYPE_KEY_DOWN) {
+        if (ev->key_code == SAPP_KEYCODE_ESCAPE) {
+            sapp_quit();
+        }
+    }
+}
+
 static void cleanup(void) {
     simgui_shutdown();
     sg_shutdown();
-}
-
-static void event(const sapp_event* ev) {
-    simgui_handle_event(ev);
 }
 
 sapp_desc sokol_main(int argc, char* argv[]) {
