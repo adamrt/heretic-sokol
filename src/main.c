@@ -5,6 +5,7 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "cimgui.h"
 #include "sokol_imgui.h"
+#include "shaders/basic.glsl.h"
 
 static struct {
     sg_pipeline pipe;
@@ -30,41 +31,22 @@ static void init(void) {
     state.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
         .data = SG_RANGE(vertices),
         .label = "triangle-vertices"
-        });
+    });
 
-    // create shader from code-generated sg_shader_desc
-    sg_shader shd = sg_make_shader(&(sg_shader_desc){
-            .vs.source =
-                "#version 330\n"
-                "layout(location=0) in vec4 position;\n"
-                "layout(location=1) in vec4 color0;\n"
-                "out vec4 color;\n"
-                "void main() {\n"
-                "  gl_Position = position;\n"
-                "  color = color0;\n"
-                "}\n",
-            .fs.source =
-                "#version 330\n"
-                "in vec4 color;\n"
-                "out vec4 frag_color;\n"
-                "void main() {\n"
-                "  frag_color = color;\n"
-                "}\n"
-        });
+    /* create shader */
+    sg_shader shd = sg_make_shader(basic_shader_desc(sg_query_backend()));
 
-    // create a pipeline object (default render states are fine for triangle)
+    /* create pipeline object */
     state.pipe = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = shd,
-        // if the vertex layout doesn't have gaps, don't need to provide strides
-        // and offsets
         .layout = {
             .attrs = {
-                [0].format = SG_VERTEXFORMAT_FLOAT3,
-                [1].format = SG_VERTEXFORMAT_FLOAT4
+                [ATTR_vs_basic_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_basic_color0].format   = SG_VERTEXFORMAT_FLOAT4
             }
         },
         .label = "triangle-pipeline"
-        });
+    });
 
     // initial clear color
     state.pass_action = (sg_pass_action) {
@@ -72,7 +54,7 @@ static void init(void) {
     };
 }
 
-static void gui(void) {
+static void ui_draw(void) {
     simgui_new_frame(&(simgui_frame_desc_t){
         .width = sapp_width(),
         .height = sapp_height(),
@@ -88,7 +70,7 @@ static void gui(void) {
 }
 
 static void frame(void) {
-    gui();
+    ui_draw();
 
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
     sg_apply_pipeline(state.pipe);

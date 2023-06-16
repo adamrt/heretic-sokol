@@ -1,4 +1,7 @@
-debug:
+shader:
+	./sokol-shdc -i src/shaders/basic.glsl -o src/shaders/basic.glsl.h -l glsl330
+
+run: shader
 	mkdir -p build && cd build && cmake .. && cmake --build . && ./heretic
 
 release:

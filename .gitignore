@@ -1,2 +1,3 @@
 .cache/
 build/
+/src/shaders/*.glsl.h
