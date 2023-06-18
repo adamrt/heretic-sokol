@@ -13,6 +13,11 @@ static struct {
     sg_pass_action pass_action;
 } state;
 
+typedef struct {
+    float x, y, z;
+    float r, g, b, a;
+} vertex;
+
 static void init(void) {
     sg_setup(&(sg_desc){
         .context = sapp_sgcontext(),
@@ -21,11 +26,11 @@ static void init(void) {
     simgui_setup(&(simgui_desc_t){ 0 });
 
     /* a vertex buffer */
-    const float vertices[] = {
+    const vertex vertices[] = {
         // positions            // colors
-         0.0f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f
+        { 0.0f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f },
+        { 0.5f, -0.5f, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f },
+        {-0.5f, -0.5f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f }
     };
 
     state.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
