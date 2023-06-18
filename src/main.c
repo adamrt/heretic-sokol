@@ -7,6 +7,12 @@
 #include "sokol_imgui.h"
 #include "shaders/basic.glsl.h"
 
+// Forward declarations;
+static void init(void);
+static void event(const sapp_event* ev);
+static void frame(void);
+static void cleanup(void);
+
 static struct {
     sg_pipeline pipe;
     sg_bindings bind;
@@ -17,6 +23,22 @@ typedef struct {
     float x, y, z;
     float r, g, b, a;
 } vertex;
+
+sapp_desc sokol_main(int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+    return (sapp_desc){
+        .init_cb = init,
+        .event_cb = event,
+        .frame_cb = frame,
+        .cleanup_cb = cleanup,
+        .window_title = "Heretic",
+        .width = 800,
+        .height = 600,
+        .icon.sokol_default = true,
+        .logger.func = slog_func,
+    };
+}
 
 static void init(void) {
     sg_setup(&(sg_desc){
@@ -59,7 +81,16 @@ static void init(void) {
     };
 }
 
-static void ui_draw(void) {
+static void event(const sapp_event* ev) {
+    simgui_handle_event(ev);
+    if (ev->type == SAPP_EVENTTYPE_KEY_DOWN) {
+        if (ev->key_code == SAPP_KEYCODE_ESCAPE) {
+            sapp_quit();
+        }
+    }
+}
+
+static void frame(void) {
     simgui_new_frame(&(simgui_frame_desc_t){
         .width = sapp_width(),
         .height = sapp_height(),
@@ -72,10 +103,6 @@ static void ui_draw(void) {
     igBegin("Dear ImGui!", 0, ImGuiWindowFlags_None);
     igColorEdit3("Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
     igEnd();
-}
-
-static void frame(void) {
-    ui_draw();
 
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
     sg_apply_pipeline(state.pipe);
@@ -87,32 +114,7 @@ static void frame(void) {
     sg_commit();
 }
 
-static void event(const sapp_event* ev) {
-    simgui_handle_event(ev);
-    if (ev->type == SAPP_EVENTTYPE_KEY_DOWN) {
-        if (ev->key_code == SAPP_KEYCODE_ESCAPE) {
-            sapp_quit();
-        }
-    }
-}
-
 static void cleanup(void) {
     simgui_shutdown();
     sg_shutdown();
-}
-
-sapp_desc sokol_main(int argc, char* argv[]) {
-    (void)argc;
-    (void)argv;
-    return (sapp_desc){
-        .init_cb = init,
-        .frame_cb = frame,
-        .cleanup_cb = cleanup,
-        .event_cb = event,
-        .window_title = "Heretic",
-        .width = 800,
-        .height = 600,
-        .icon.sokol_default = true,
-        .logger.func = slog_func,
-    };
 }
