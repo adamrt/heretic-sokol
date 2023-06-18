@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -5,7 +7,19 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "cimgui.h"
 #include "sokol_imgui.h"
+
 #include "shaders/basic.glsl.h"
+
+typedef int8_t  i8;
+typedef int16_t i16;
+typedef int32_t i32;
+
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+
+typedef float  f32;
+typedef double f64;
 
 // Forward declarations;
 static void init(void);
@@ -20,8 +34,8 @@ static struct {
 } state;
 
 typedef struct {
-    float x, y, z;
-    float r, g, b, a;
+    f32 x, y, z;
+    f32 r, g, b, a;
 } vertex;
 
 sapp_desc sokol_main(int argc, char* argv[]) {
