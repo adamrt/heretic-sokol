@@ -1,19 +1,26 @@
-@vs vs_basic
+@vs vs
+uniform vs_params {
+    vec4 color;
+};
+
 in vec3 position;
+out vec4 ourColor;
 
 void main()
 {
     gl_Position = vec4(position.xyz, 1.0);
+    ourColor = color;
 }
 @end
 
-@fs fs_basic
+@fs fs
+in  vec4 ourColor;
 out vec4 FragColor;
 
 void main()
 {
-    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+    FragColor = ourColor;
 }
 @end
 
-@program basic vs_basic fs_basic
+@program basic vs fs

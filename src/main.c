@@ -33,6 +33,13 @@ static void frame(void);
 static void cleanup(void);
 
 static struct {
+    // app
+    f32 delta;
+
+    // vertex shader uniform
+    vs_params_t vs_params;
+
+    // sokol
     sg_pipeline pipe;
     sg_bindings bind;
     sg_pass_action pass_action;
@@ -97,7 +104,7 @@ static void init(void) {
         .index_type = SG_INDEXTYPE_UINT16,
         .layout = {
             .attrs = {
-                [ATTR_vs_basic_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
             }
         },
         .label = "square-pipeline"
@@ -126,6 +133,13 @@ static void frame(void) {
         .dpi_scale = sapp_dpi_scale(),
     });
 
+    state.delta += (f32)sapp_frame_duration();
+    f32 greenValue = sin(state.delta) / 2.0f + 0.5f;
+    state.vs_params.color[0] = 0.0f;
+    state.vs_params.color[1] = greenValue;
+    state.vs_params.color[2] = 0.0f;
+    state.vs_params.color[3] = 0.0f;
+
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);
     igBegin("Dear ImGui!", 0, ImGuiWindowFlags_None);
@@ -135,6 +149,8 @@ static void frame(void) {
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
     sg_apply_pipeline(state.pipe);
     sg_apply_bindings(&state.bind);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(state.vs_params));
+
     sg_draw(0, 6, 1);
 
     simgui_render();
