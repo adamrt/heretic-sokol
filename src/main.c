@@ -65,29 +65,42 @@ static void init(void) {
     });
     simgui_setup(&(simgui_desc_t){ 0 });
 
-    /* VBO: vertex buffer object */
+    // vertex buffer object
     const vertex vertices[] = {
-        {-0.5f, -0.5f, 0.0f},
-        { 0.5f, -0.5f, 0.0f},
-        { 0.0f,  0.5f, 0.0f},
+        { 0.5f,  0.5f, 0.0f},  // top right
+        { 0.5f, -0.5f, 0.0f},  // bottom right
+        {-0.5f, -0.5f, 0.0f},  // bottom left
+        {-0.5f,  0.5f, 0.0f},  // top left
     };
     state.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
         .data = SG_RANGE(vertices),
-        .label = "triangle-vertices"
+        .label = "square-vertices"
     });
 
-    /* create shader */
+    // element buffer object
+    u16 indices[] = {
+        0, 1, 3,   // first triangle
+        1, 2, 3    // second triangle
+    };
+    state.bind.index_buffer = sg_make_buffer(&(sg_buffer_desc){
+        .type = SG_BUFFERTYPE_INDEXBUFFER,
+        .data = SG_RANGE(indices),
+        .label = "square-indices"
+    });
+
+    // create shader
     sg_shader shd = sg_make_shader(basic_shader_desc(sg_query_backend()));
 
-    /* create pipeline object */
+    // create pipeline object
     state.pipe = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = shd,
+        .index_type = SG_INDEXTYPE_UINT16,
         .layout = {
             .attrs = {
                 [ATTR_vs_basic_position].format = SG_VERTEXFORMAT_FLOAT3,
             }
         },
-        .label = "triangle-pipeline"
+        .label = "square-pipeline"
     });
 
     // initial clear color
@@ -122,7 +135,7 @@ static void frame(void) {
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
     sg_apply_pipeline(state.pipe);
     sg_apply_bindings(&state.bind);
-    sg_draw(0, 3, 1);
+    sg_draw(0, 6, 1);
 
     simgui_render();
     sg_end_pass();
