@@ -29,7 +29,7 @@ target_link_libraries(sokol INTERFACE X11 Xi Xcursor GL dl m)
 target_link_libraries(sokol PUBLIC Threads::Threads)
 
 target_link_libraries(sokol PUBLIC cimgui)
-target_include_directories(sokol INTERFACE lib/sokol)
+target_include_directories(sokol INTERFACE lib/sokol lib )
 
 add_executable(heretic src/main.c)
 target_link_libraries(heretic sokol)
