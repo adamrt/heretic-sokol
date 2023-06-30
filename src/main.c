@@ -39,6 +39,8 @@ static struct {
     // app
     f32 delta;
 
+    vs_params_t vs_params;
+
     // sokol
     sg_pipeline pipe;
     sg_bindings bind;
@@ -72,6 +74,8 @@ static void init(void) {
         .logger.func = slog_func,
     });
     simgui_setup(&(simgui_desc_t){ 0 });
+
+    state.vs_params.uSlider = 0.2f;
 
     // vertex buffer object
     vertex vertices[] = {
@@ -183,11 +187,13 @@ static void frame(void) {
     igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);
     igBegin("Dear ImGui!", 0, ImGuiWindowFlags_None);
     igColorEdit3("Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
+    igSliderFloat("Slider", &state.vs_params.uSlider,0.0, 1.0, "%0.2f", 0);
     igEnd();
 
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
     sg_apply_pipeline(state.pipe);
     sg_apply_bindings(&state.bind);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(state.vs_params));
 
     sg_draw(0, 6, 1);
 
