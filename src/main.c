@@ -1,9 +1,14 @@
 #include <stdint.h>
 
+// Sokol
+#define SOKOL_IMPL
+#define SOKOL_GLCORE33
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
 #include "sokol_glue.h"
+
+// ImGUI
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "cimgui.h"
 #include "sokol_imgui.h"
@@ -91,7 +96,7 @@ static void init(void) {
 
     // initial clear color
     state.pass_action = (sg_pass_action) {
-        .colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 0.0f, 0.0f, 0.0f, 1.0 } }
+        .colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 0.2f, 0.3f, 0.3f, 1.0f } }
     };
 }
 
