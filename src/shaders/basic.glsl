@@ -16,11 +16,12 @@ out vec4 FragColor;
 
 in vec2 uv;
 
-uniform sampler2D tex;
+uniform sampler2D texture1;
+uniform sampler2D texture2;
 
 void main()
 {
-    FragColor = texture(tex, uv);;
+    FragColor = mix(texture(texture1, uv), texture(texture2, uv), 0.2);
 }
 @end
 

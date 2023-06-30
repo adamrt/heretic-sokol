@@ -113,29 +113,46 @@ static void init(void) {
         .label = "square-pipeline"
     });
 
-    int pixels_w, pixels_h, pixels_nch;
+    stbi_set_flip_vertically_on_load(true);
     int desired_nch = 4;
-    unsigned char *pixels = stbi_load("../res/container.jpg", &pixels_w, &pixels_h, &pixels_nch, desired_nch);
-    if (pixels == NULL) {
+
+    int wood_w, wood_h, wood_nch;
+    unsigned char *wood = stbi_load("../res/wood.jpg", &wood_w, &wood_h, &wood_nch, desired_nch);
+    if (wood == NULL) {
         printf("failed to open image\n");
         exit(1);
     };
-
-    printf("channels: %d\n", pixels_nch);
-
-    state.bind.fs_images[SLOT_tex] = sg_alloc_image();
-    sg_init_image(state.bind.fs_images[SLOT_tex], &(sg_image_desc){
-        .width = pixels_w,
-        .height = pixels_h,
+    state.bind.fs_images[SLOT_texture1] = sg_alloc_image();
+    sg_init_image(state.bind.fs_images[SLOT_texture1], &(sg_image_desc){
+        .width = wood_w,
+        .height = wood_h,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
         .data.subimage[0][0] = {
-            .ptr = pixels,
-            .size = (size_t)(pixels_w * pixels_h * 4),
+            .ptr = wood,
+            .size = (size_t)(wood_w * wood_h * 4),
         },
         .label = "wood-container-texture"
     });
-    stbi_image_free(pixels);
+    stbi_image_free(wood);
 
+    int face_w, face_h, face_nch;
+    unsigned char *face = stbi_load("../res/face.png", &face_w, &face_h, &face_nch, desired_nch);
+    if (face == NULL) {
+        printf("failed to open image\n");
+        exit(1);
+    };
+    state.bind.fs_images[SLOT_texture2] = sg_alloc_image();
+    sg_init_image(state.bind.fs_images[SLOT_texture2], &(sg_image_desc){
+        .width = face_w,
+        .height = face_h,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .data.subimage[0][0] = {
+            .ptr = face,
+            .size = (size_t)(face_w * face_h * 4),
+        },
+        .label = "face-container-texture"
+    });
+    stbi_image_free(face);
 
 // initial clear color
     state.pass_action = (sg_pass_action) {
