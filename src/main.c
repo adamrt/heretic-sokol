@@ -13,6 +13,9 @@
 #include "cimgui.h"
 #include "sokol_imgui.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "shaders/basic.glsl.h"
 
 typedef int8_t  i8;
@@ -36,9 +39,6 @@ static struct {
     // app
     f32 delta;
 
-    // vertex shader uniform
-    vs_params_t vs_params;
-
     // sokol
     sg_pipeline pipe;
     sg_bindings bind;
@@ -47,6 +47,7 @@ static struct {
 
 typedef struct {
     f32 x, y, z;
+    f32 u, v;
 } vertex;
 
 sapp_desc sokol_main(int argc, char* argv[]) {
@@ -73,11 +74,12 @@ static void init(void) {
     simgui_setup(&(simgui_desc_t){ 0 });
 
     // vertex buffer object
-    const vertex vertices[] = {
-        { 0.5f,  0.5f, 0.0f},  // top right
-        { 0.5f, -0.5f, 0.0f},  // bottom right
-        {-0.5f, -0.5f, 0.0f},  // bottom left
-        {-0.5f,  0.5f, 0.0f},  // top left
+    vertex vertices[] = {
+          // positions         // texcoords
+        { 0.5f,  0.5f, 0.0f,   1.0f, 1.0f}, // top right
+        { 0.5f, -0.5f, 0.0f,   1.0f, 0.0f}, // bottom right
+        {-0.5f, -0.5f, 0.0f,   0.0f, 0.0f}, // bottom left
+        {-0.5f,  0.5f, 0.0f,   0.0f, 1.0f}, // top left
     };
     state.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
         .data = SG_RANGE(vertices),
@@ -104,13 +106,38 @@ static void init(void) {
         .index_type = SG_INDEXTYPE_UINT16,
         .layout = {
             .attrs = {
-                [ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_aPos].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_aTexCoord].format = SG_VERTEXFORMAT_FLOAT2,
             }
         },
         .label = "square-pipeline"
     });
 
-    // initial clear color
+    int pixels_w, pixels_h, pixels_nch;
+    int desired_nch = 4;
+    unsigned char *pixels = stbi_load("../res/container.jpg", &pixels_w, &pixels_h, &pixels_nch, desired_nch);
+    if (pixels == NULL) {
+        printf("failed to open image\n");
+        exit(1);
+    };
+
+    printf("channels: %d\n", pixels_nch);
+
+    state.bind.fs_images[SLOT_tex] = sg_alloc_image();
+    sg_init_image(state.bind.fs_images[SLOT_tex], &(sg_image_desc){
+        .width = pixels_w,
+        .height = pixels_h,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .data.subimage[0][0] = {
+            .ptr = pixels,
+            .size = (size_t)(pixels_w * pixels_h * 4),
+        },
+        .label = "wood-container-texture"
+    });
+    stbi_image_free(pixels);
+
+
+// initial clear color
     state.pass_action = (sg_pass_action) {
         .colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 0.2f, 0.3f, 0.3f, 1.0f } }
     };
@@ -134,11 +161,6 @@ static void frame(void) {
     });
 
     state.delta += (f32)sapp_frame_duration();
-    f32 greenValue = sin(state.delta) / 2.0f + 0.5f;
-    state.vs_params.color[0] = 0.0f;
-    state.vs_params.color[1] = greenValue;
-    state.vs_params.color[2] = 0.0f;
-    state.vs_params.color[3] = 0.0f;
 
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);
@@ -149,7 +171,6 @@ static void frame(void) {
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
     sg_apply_pipeline(state.pipe);
     sg_apply_bindings(&state.bind);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(state.vs_params));
 
     sg_draw(0, 6, 1);
 

@@ -1,25 +1,26 @@
 @vs vs
-uniform vs_params {
-    vec4 color;
-};
+in vec3 aPos;
+in vec2 aTexCoord;
 
-in vec3 position;
-out vec4 ourColor;
+out vec2 uv;
 
 void main()
 {
-    gl_Position = vec4(position.xyz, 1.0);
-    ourColor = color;
+    gl_Position = vec4(aPos, 1.0);
+    uv = aTexCoord;
 }
 @end
 
 @fs fs
-in  vec4 ourColor;
 out vec4 FragColor;
+
+in vec2 uv;
+
+uniform sampler2D tex;
 
 void main()
 {
-    FragColor = ourColor;
+    FragColor = texture(tex, uv);;
 }
 @end
 
