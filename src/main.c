@@ -16,6 +16,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "hmmmath.h"
+
 #include "shaders/basic.glsl.h"
 
 typedef int8_t  i8;
