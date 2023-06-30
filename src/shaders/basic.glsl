@@ -1,22 +1,18 @@
 @vs vs_basic
+in vec3 position;
 
-layout(location=0) in vec4 position;
-layout(location=1) in vec4 color0;
-
-out vec4 color;
-
-void main() {
-    gl_Position = position;
-    color = color0;
+void main()
+{
+    gl_Position = vec4(position.xyz, 1.0);
 }
 @end
 
 @fs fs_basic
-in vec4 color;
-out vec4 frag_color;
+out vec4 FragColor;
 
-void main() {
-    frag_color = color;
+void main()
+{
+    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
 }
 @end
 

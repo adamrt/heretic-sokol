@@ -40,7 +40,6 @@ static struct {
 
 typedef struct {
     f32 x, y, z;
-    f32 r, g, b, a;
 } vertex;
 
 sapp_desc sokol_main(int argc, char* argv[]) {
@@ -66,14 +65,12 @@ static void init(void) {
     });
     simgui_setup(&(simgui_desc_t){ 0 });
 
-    /* a vertex buffer */
+    /* VBO: vertex buffer object */
     const vertex vertices[] = {
-        // positions            // colors
-        { 0.0f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f },
-        { 0.5f, -0.5f, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f },
-        {-0.5f, -0.5f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f }
+        {-0.5f, -0.5f, 0.0f},
+        { 0.5f, -0.5f, 0.0f},
+        { 0.0f,  0.5f, 0.0f},
     };
-
     state.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
         .data = SG_RANGE(vertices),
         .label = "triangle-vertices"
@@ -88,7 +85,6 @@ static void init(void) {
         .layout = {
             .attrs = {
                 [ATTR_vs_basic_position].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_basic_color0].format   = SG_VERTEXFORMAT_FLOAT4
             }
         },
         .label = "triangle-pipeline"
