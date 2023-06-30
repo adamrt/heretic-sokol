@@ -123,7 +123,7 @@ static void init(void) {
     int desired_nch = 4;
 
     int wood_w, wood_h, wood_nch;
-    unsigned char *wood = stbi_load("../res/wood.jpg", &wood_w, &wood_h, &wood_nch, desired_nch);
+    unsigned char *wood = stbi_load("./res/wood.jpg", &wood_w, &wood_h, &wood_nch, desired_nch);
     if (wood == NULL) {
         printf("failed to open image\n");
         exit(1);
@@ -142,7 +142,7 @@ static void init(void) {
     stbi_image_free(wood);
 
     int face_w, face_h, face_nch;
-    unsigned char *face = stbi_load("../res/face.png", &face_w, &face_h, &face_nch, desired_nch);
+    unsigned char *face = stbi_load("./res/face.png", &face_w, &face_h, &face_nch, desired_nch);
     if (face == NULL) {
         printf("failed to open image\n");
         exit(1);

@@ -1,8 +1,11 @@
+build:
+	mkdir -p build
+
 shader:
 	./sokol-shdc -i src/shaders/basic.glsl -o src/shaders/basic.glsl.h -l glsl330
 
-run: shader
-	mkdir -p build && cd build && cmake .. && cmake --build . && ./heretic
+run: build shader
+	cd build && cmake .. && cd .. && cmake --build build && ./build/heretic
 
 release:
-	mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=MinSizeRel .. && cmake --build . && ./heretic
+	cd build && cmake -DCMAKE_BUILD_TYPE=MinSizeRel .. && cd .. && cmake --build build && ./build/heretic
