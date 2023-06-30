@@ -1,6 +1,9 @@
+@ctype mat4 HMM_Mat4
+
 @vs vs
 uniform vs_params {
     float uSlider;
+    mat4 transform;
 };
 
 in vec3 aPos;
@@ -11,7 +14,7 @@ out float slider;
 
 void main()
 {
-    gl_Position = vec4(aPos, 1.0);
+    gl_Position = transform * vec4(aPos, 1.0f);
     uv = aTexCoord;
     slider = uSlider;
 }

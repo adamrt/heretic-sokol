@@ -79,6 +79,11 @@ static void init(void) {
 
     state.vs_params.uSlider = 0.2f;
 
+    HMM_Mat4 ident = HMM_M4D(1.0f);
+    HMM_Mat4 rotz = HMM_Rotate_RH(HMM_AngleDeg(90.0f), HMM_V3(0.0, 0.0, 1.0));
+    HMM_Mat4 scale = HMM_Scale(HMM_V3(0.5, 0.5, 0.5));
+    state.vs_params.transform = HMM_MulM4(scale, HMM_MulM4(ident, rotz));
+
     // vertex buffer object
     vertex vertices[] = {
           // positions         // texcoords
