@@ -72,8 +72,8 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .frame_cb = frame,
         .cleanup_cb = cleanup,
         .window_title = "Heretic",
-        .width = 800,
-        .height = 600,
+        .width = 1280,
+        .height = 960,
         .icon.sokol_default = true,
         .logger.func = slog_func,
     };
@@ -254,7 +254,7 @@ static void event(const sapp_event* ev) {
 
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (sapp_mouse_locked()) {
-            const f32 sensitivity = 0.5f;
+            const f32 sensitivity = 0.2f;
             g.cam.pitch -= ev->mouse_dy * sensitivity;
             g.cam.yaw += ev->mouse_dx * sensitivity;
             if (g.cam.pitch > 89.0f) g.cam.pitch = 89.0f;
@@ -277,7 +277,7 @@ static void event(const sapp_event* ev) {
 // process_input will check keydown status to generate smooth movements.
 // see the event callback for more information.
 static void process_input(void) {
-    const float delta = 5.0 * sapp_frame_duration();
+    const f32 delta = 5.0 * sapp_frame_duration();
     if (poll_keydown(SAPP_KEYCODE_W)) {
         g.cam.pos = v3_add(g.cam.pos, v3_mulf(g.cam.front, delta));
     }
