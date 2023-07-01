@@ -31,6 +31,40 @@ typedef uint32_t u32;
 typedef float  f32;
 typedef double f64;
 
+// Key polling setup
+#define BIT_INDEX(key) ((key) / 8)
+#define BIT_MASK(key) (1 << ((key) % 8))
+#define KEYDOWN_MAX 64
+static uint8_t poll_keydown_state[KEYDOWN_MAX];
+
+// poll_keydown returns a bool for a keys current pressed stated.
+bool poll_keydown(sapp_keycode key) {
+    return poll_keydown_state[BIT_INDEX(key)] & BIT_MASK(key);
+}
+
+// poll_handle_event processes sokol/glfw events as they come in and
+// sets keystate. This is used instead of the standard event callback
+// because we want to check state per-frame, instead of only when a
+// new event is fired. This is useful for smooth camera movement when
+// holding a key down.
+bool poll_handle_event(const sapp_event* evt) {
+    switch (evt->type) {
+    case SAPP_EVENTTYPE_KEY_DOWN:
+        poll_keydown_state[BIT_INDEX(evt->key_code)] |= BIT_MASK(evt->key_code);
+        return true;
+    case SAPP_EVENTTYPE_KEY_UP:
+        poll_keydown_state[BIT_INDEX(evt->key_code)] &= ~BIT_MASK(evt->key_code);
+        return true;
+    case SAPP_EVENTTYPE_UNFOCUSED:
+    case SAPP_EVENTTYPE_SUSPENDED:
+    case SAPP_EVENTTYPE_ICONIFIED:
+        memset(poll_keydown_state, 0, sizeof(poll_keydown_state));
+        return true;
+    default:
+        return false;
+    }
+}
+
 // Forward declarations;
 static void init(void);
 static void event(const sapp_event* ev);
@@ -226,16 +260,20 @@ static void init(void) {
 }
 
 static void event(const sapp_event* ev) {
+    if (ev->type == SAPP_EVENTTYPE_KEY_DOWN && ev->key_code == SAPP_KEYCODE_ESCAPE) {
+        sapp_quit();
+    }
+
+    // Every event update the poll_keydown_state.
+    poll_handle_event(ev);
+
+
+    // If ImGUI handles the event we shouldn't handle it.
     if (simgui_handle_event(ev)) {
         return;
     };
-    switch (ev->type) {
-    case SAPP_EVENTTYPE_MOUSE_SCROLL:
-        state.camera.fov -= ev->scroll_y;
-        if (state.camera.fov < 1.0f) state.camera.fov = 1.0f;
-        if (state.camera.fov > 45.0f) state.camera.fov = 45.0f;
-        break;
 
+    switch (ev->type) {
     case SAPP_EVENTTYPE_MOUSE_DOWN:
         if (ev->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
             sapp_lock_mouse(true);
@@ -258,29 +296,33 @@ static void event(const sapp_event* ev) {
         }
         break;
 
+    case SAPP_EVENTTYPE_MOUSE_SCROLL:
+        // Zooming
+        state.camera.fov -= ev->scroll_y;
+        if (state.camera.fov < 1.0f) state.camera.fov = 1.0f;
+        if (state.camera.fov > 45.0f) state.camera.fov = 45.0f;
+        break;
+
     default:
         break;
     }
+}
 
-    if (ev->type == SAPP_EVENTTYPE_KEY_DOWN) {
-        if (ev->key_code == SAPP_KEYCODE_ESCAPE) {
-            sapp_quit();
-        }
-
-        const float delta = 5.0 * sapp_frame_duration();
-
-        if (ev->key_code == SAPP_KEYCODE_W) {
-            state.camera.position = HMM_AddV3(state.camera.position, HMM_MulV3F(state.camera.front, delta));
-        }
-        if (ev->key_code == SAPP_KEYCODE_S) {
-            state.camera.position = HMM_SubV3(state.camera.position, HMM_MulV3F(state.camera.front, delta));
-        }
-        if (ev->key_code == SAPP_KEYCODE_A) {
-            state.camera.position = HMM_SubV3(state.camera.position, HMM_MulV3F(HMM_NormV3(HMM_Cross(state.camera.front, state.camera.up)), delta));
-        }
-        if (ev->key_code == SAPP_KEYCODE_D) {
-            state.camera.position = HMM_AddV3(state.camera.position, HMM_MulV3F(HMM_NormV3(HMM_Cross(state.camera.front, state.camera.up)), delta));
-        }
+// process_input will check keydown status to generate smooth movements.
+// see the event callback for more information.
+static void process_input(void) {
+    const float delta = 5.0 * sapp_frame_duration();
+    if (poll_keydown(SAPP_KEYCODE_W)) {
+        state.camera.position = HMM_AddV3(state.camera.position, HMM_MulV3F(state.camera.front, delta));
+    }
+    if (poll_keydown(SAPP_KEYCODE_S)) {
+        state.camera.position = HMM_SubV3(state.camera.position, HMM_MulV3F(state.camera.front, delta));
+    }
+    if (poll_keydown(SAPP_KEYCODE_A)) {
+        state.camera.position = HMM_SubV3(state.camera.position, HMM_MulV3F(HMM_NormV3(HMM_Cross(state.camera.front, state.camera.up)), delta));
+    }
+    if (poll_keydown(SAPP_KEYCODE_D)) {
+        state.camera.position = HMM_AddV3(state.camera.position, HMM_MulV3F(HMM_NormV3(HMM_Cross(state.camera.front, state.camera.up)), delta));
     }
 }
 
@@ -293,6 +335,8 @@ static void frame(void) {
     });
 
     state.time += (f32)sapp_frame_duration();
+
+    process_input();
 
     HMM_Vec3 cubePositions[] = {
         HMM_V3( 0.0f,  0.0f,  0.0f),
