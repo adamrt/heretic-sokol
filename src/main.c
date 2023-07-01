@@ -35,58 +35,24 @@ typedef double   f64;
 #define KEYDOWN_MAX 64
 static uint8_t poll_keydown_state[KEYDOWN_MAX];
 
-// poll_keydown returns a bool for a keys current pressed stated.
-bool poll_keydown(sapp_keycode key) {
-    return poll_keydown_state[BIT_INDEX(key)] & BIT_MASK(key);
-}
-
-// poll_handle_event processes sokol/glfw events as they come in and
-// sets keystate. This is used instead of the standard event callback
-// because we want to check state per-frame, instead of only when a
-// new event is fired. This is useful for smooth camera movement when
-// holding a key down.
-bool poll_handle_event(const sapp_event* evt) {
-    switch (evt->type) {
-    case SAPP_EVENTTYPE_KEY_DOWN:
-        poll_keydown_state[BIT_INDEX(evt->key_code)] |= BIT_MASK(evt->key_code);
-        return true;
-    case SAPP_EVENTTYPE_KEY_UP:
-        poll_keydown_state[BIT_INDEX(evt->key_code)] &= ~BIT_MASK(evt->key_code);
-        return true;
-    case SAPP_EVENTTYPE_UNFOCUSED:
-    case SAPP_EVENTTYPE_SUSPENDED:
-    case SAPP_EVENTTYPE_ICONIFIED:
-        memset(poll_keydown_state, 0, sizeof(poll_keydown_state));
-        return true;
-    default:
-        return false;
-    }
-}
-
 // Forward declarations;
 static void init(void);
 static void event(const sapp_event* ev);
 static void frame(void);
 static void cleanup(void);
+static bool poll_keydown(sapp_keycode key);
+static bool poll_handle_event(const sapp_event *evt);
 
 static struct {
-    // app
     f32 time;
 
     struct {
-        HMM_Vec3 pos;
-        HMM_Vec3 front;
-        HMM_Vec3 up;
-
-        f32 pitch;
-        f32 yaw;
-
-        f32 fov;
+        HMM_Vec3 pos, front, up;
+        f32 pitch, yaw, fov;
     } cam ;
 
     vs_params_t shader;
 
-    // sokol
     sg_pipeline pipe;
     sg_bindings bind;
     sg_pass_action pass_action;
@@ -385,6 +351,34 @@ static void frame(void) {
     simgui_render();
     sg_end_pass();
     sg_commit();
+}
+
+// poll_keydown returns a bool for a keys current pressed stated.
+static bool poll_keydown(sapp_keycode key) {
+    return poll_keydown_state[BIT_INDEX(key)] & BIT_MASK(key);
+}
+
+// poll_handle_event processes sokol/glfw events as they come in and
+// sets keystate. This is used instead of the standard event callback
+// because we want to check state per-frame, instead of only when a
+// new event is fired. This is useful for smooth camera movement when
+// holding a key down.
+static bool poll_handle_event(const sapp_event* evt) {
+    switch (evt->type) {
+    case SAPP_EVENTTYPE_KEY_DOWN:
+        poll_keydown_state[BIT_INDEX(evt->key_code)] |= BIT_MASK(evt->key_code);
+        return true;
+    case SAPP_EVENTTYPE_KEY_UP:
+        poll_keydown_state[BIT_INDEX(evt->key_code)] &= ~BIT_MASK(evt->key_code);
+        return true;
+    case SAPP_EVENTTYPE_UNFOCUSED:
+    case SAPP_EVENTTYPE_SUSPENDED:
+    case SAPP_EVENTTYPE_ICONIFIED:
+        memset(poll_keydown_state, 0, sizeof(poll_keydown_state));
+        return true;
+    default:
+        return false;
+    }
 }
 
 static void cleanup(void) {
