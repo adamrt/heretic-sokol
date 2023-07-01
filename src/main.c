@@ -20,16 +20,14 @@
 
 #include "shaders/basic.glsl.h"
 
-typedef int8_t  i8;
-typedef int16_t i16;
-typedef int32_t i32;
-
+typedef int8_t   i8;
+typedef int16_t  i16;
+typedef int32_t  i32;
 typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
-
-typedef float  f32;
-typedef double f64;
+typedef float    f32;
+typedef double   f64;
 
 // Key polling setup
 #define BIT_INDEX(key) ((key) / 8)
@@ -76,7 +74,7 @@ static struct {
     f32 time;
 
     struct {
-        HMM_Vec3 position;
+        HMM_Vec3 pos;
         HMM_Vec3 front;
         HMM_Vec3 up;
 
@@ -84,15 +82,15 @@ static struct {
         f32 yaw;
 
         f32 fov;
-    } camera ;
+    } cam ;
 
-    vs_params_t vs_params;
+    vs_params_t shader;
 
     // sokol
     sg_pipeline pipe;
     sg_bindings bind;
     sg_pass_action pass_action;
-} state;
+} g;
 
 typedef struct {
     f32 x, y, z;
@@ -122,13 +120,15 @@ static void init(void) {
     });
     simgui_setup(&(simgui_desc_t){ 0 });
 
-    state.vs_params.uSlider = 0.2f;
-    state.camera.position = HMM_V3(0.0f, 0.0f, 3.0f);
-    state.camera.front = HMM_V3(0.0f, 0.0f, -1.0f);
-    state.camera.up = HMM_V3(0.0f, 0.1f, 0.0f);
-    state.camera.yaw = -90.0f;
-    state.camera.pitch = 0.0;
-    state.camera.fov = 45.0;
+    g.shader.uSlider = 0.2f;
+
+    // Camera init
+    g.cam.pos = HMM_V3(0.0f, 0.0f, 3.0f);
+    g.cam.front = HMM_V3(0.0f, 0.0f, -1.0f);
+    g.cam.up = HMM_V3(0.0f, 0.1f, 0.0f);
+    g.cam.yaw = -90.0f;
+    g.cam.pitch = 0.0;
+    g.cam.fov = 45.0;
 
     // vertex buffer object
     vertex vertices[] = {
@@ -176,7 +176,7 @@ static void init(void) {
         {-0.5f,  0.5f, -0.5f,  0.0f, 1.0f},
     };
 
-    state.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
+    g.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
         .data = SG_RANGE(vertices),
         .label = "cube-vertices"
     });
@@ -196,7 +196,7 @@ static void init(void) {
     sg_shader shd = sg_make_shader(basic_shader_desc(sg_query_backend()));
 
     // create pipeline object
-    state.pipe = sg_make_pipeline(&(sg_pipeline_desc){
+    g.pipe = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = shd,
         // .index_type = SG_INDEXTYPE_UINT16,
         .layout = {
@@ -221,8 +221,8 @@ static void init(void) {
         printf("failed to open image\n");
         exit(1);
     };
-    state.bind.fs_images[SLOT_texture1] = sg_alloc_image();
-    sg_init_image(state.bind.fs_images[SLOT_texture1], &(sg_image_desc){
+    g.bind.fs_images[SLOT_texture1] = sg_alloc_image();
+    sg_init_image(g.bind.fs_images[SLOT_texture1], &(sg_image_desc){
         .width = wood_w,
         .height = wood_h,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
@@ -240,8 +240,8 @@ static void init(void) {
         printf("failed to open image\n");
         exit(1);
     };
-    state.bind.fs_images[SLOT_texture2] = sg_alloc_image();
-    sg_init_image(state.bind.fs_images[SLOT_texture2], &(sg_image_desc){
+    g.bind.fs_images[SLOT_texture2] = sg_alloc_image();
+    sg_init_image(g.bind.fs_images[SLOT_texture2], &(sg_image_desc){
         .width = face_w,
         .height = face_h,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
@@ -254,7 +254,7 @@ static void init(void) {
     stbi_image_free(face);
 
 // initial clear color
-    state.pass_action = (sg_pass_action) {
+    g.pass_action = (sg_pass_action) {
         .colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 0.2f, 0.3f, 0.3f, 1.0f } }
     };
 }
@@ -289,18 +289,18 @@ static void event(const sapp_event* ev) {
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (sapp_mouse_locked()) {
             const f32 sensitivity = 0.5f;
-            state.camera.pitch -= ev->mouse_dy * sensitivity;
-            state.camera.yaw += ev->mouse_dx * sensitivity;
-            if (state.camera.pitch > 89.0f) state.camera.pitch = 89.0f;
-            if (state.camera.pitch < -89.0f) state.camera.pitch = -89.0f;
+            g.cam.pitch -= ev->mouse_dy * sensitivity;
+            g.cam.yaw += ev->mouse_dx * sensitivity;
+            if (g.cam.pitch > 89.0f) g.cam.pitch = 89.0f;
+            if (g.cam.pitch < -89.0f) g.cam.pitch = -89.0f;
         }
         break;
 
     case SAPP_EVENTTYPE_MOUSE_SCROLL:
         // Zooming
-        state.camera.fov -= ev->scroll_y;
-        if (state.camera.fov < 1.0f) state.camera.fov = 1.0f;
-        if (state.camera.fov > 45.0f) state.camera.fov = 45.0f;
+        g.cam.fov -= ev->scroll_y;
+        if (g.cam.fov < 1.0f) g.cam.fov = 1.0f;
+        if (g.cam.fov > 45.0f) g.cam.fov = 45.0f;
         break;
 
     default:
@@ -313,16 +313,16 @@ static void event(const sapp_event* ev) {
 static void process_input(void) {
     const float delta = 5.0 * sapp_frame_duration();
     if (poll_keydown(SAPP_KEYCODE_W)) {
-        state.camera.position = HMM_AddV3(state.camera.position, HMM_MulV3F(state.camera.front, delta));
+        g.cam.pos = HMM_AddV3(g.cam.pos, HMM_MulV3F(g.cam.front, delta));
     }
     if (poll_keydown(SAPP_KEYCODE_S)) {
-        state.camera.position = HMM_SubV3(state.camera.position, HMM_MulV3F(state.camera.front, delta));
+        g.cam.pos = HMM_SubV3(g.cam.pos, HMM_MulV3F(g.cam.front, delta));
     }
     if (poll_keydown(SAPP_KEYCODE_A)) {
-        state.camera.position = HMM_SubV3(state.camera.position, HMM_MulV3F(HMM_NormV3(HMM_Cross(state.camera.front, state.camera.up)), delta));
+        g.cam.pos = HMM_SubV3(g.cam.pos, HMM_MulV3F(HMM_NormV3(HMM_Cross(g.cam.front, g.cam.up)), delta));
     }
     if (poll_keydown(SAPP_KEYCODE_D)) {
-        state.camera.position = HMM_AddV3(state.camera.position, HMM_MulV3F(HMM_NormV3(HMM_Cross(state.camera.front, state.camera.up)), delta));
+        g.cam.pos = HMM_AddV3(g.cam.pos, HMM_MulV3F(HMM_NormV3(HMM_Cross(g.cam.front, g.cam.up)), delta));
     }
 }
 
@@ -334,7 +334,7 @@ static void frame(void) {
         .dpi_scale = sapp_dpi_scale(),
     });
 
-    state.time += (f32)sapp_frame_duration();
+    g.time += (f32)sapp_frame_duration();
 
     process_input();
 
@@ -352,33 +352,33 @@ static void frame(void) {
     };
 
     HMM_Vec3 direction = {
-        .X = cos(HMM_AngleDeg(state.camera.yaw)) * cos(HMM_AngleDeg(state.camera.pitch)),
-        .Y = sin(HMM_AngleDeg(state.camera.pitch)),
-        .Z = sin(HMM_AngleDeg(state.camera.yaw)) * cos(HMM_AngleDeg(state.camera.pitch)),
+        .X = cos(HMM_AngleDeg(g.cam.yaw)) * cos(HMM_AngleDeg(g.cam.pitch)),
+        .Y = sin(HMM_AngleDeg(g.cam.pitch)),
+        .Z = sin(HMM_AngleDeg(g.cam.yaw)) * cos(HMM_AngleDeg(g.cam.pitch)),
     };
-    state.camera.front = HMM_NormV3(direction);
+    g.cam.front = HMM_NormV3(direction);
 
-    state.vs_params.view = HMM_LookAt_RH(state.camera.position, HMM_AddV3(state.camera.position, state.camera.front), state.camera.up);
-    state.vs_params.projection = HMM_Perspective_RH_NO(HMM_AngleDeg(state.camera.fov), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
+    g.shader.view = HMM_LookAt_RH(g.cam.pos, HMM_AddV3(g.cam.pos, g.cam.front), g.cam.up);
+    g.shader.projection = HMM_Perspective_RH_NO(HMM_AngleDeg(g.cam.fov), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
 
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);
     igBegin("Dear ImGui!", 0, ImGuiWindowFlags_None);
-    igColorEdit3("Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
-    igSliderFloat("Slider", &state.vs_params.uSlider,0.0, 1.0, "%0.2f", 0);
-    igSliderFloat("Pitch", &state.camera.pitch,-89.0, 89.0, "%0.2f", 0);
-    igSliderFloat("Yaw", &state.camera.yaw,-360.0, 360.0, "%0.2f", 0);
+    igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
+    igSliderFloat("Slider", &g.shader.uSlider,0.0, 1.0, "%0.2f", 0);
+    igSliderFloat("Pitch", &g.cam.pitch,-89.0, 89.0, "%0.2f", 0);
+    igSliderFloat("Yaw", &g.cam.yaw,-360.0, 360.0, "%0.2f", 0);
 
     igEnd();
 
-    sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
-    sg_apply_pipeline(state.pipe);
-    sg_apply_bindings(&state.bind);
+    sg_begin_default_pass(&g.pass_action, sapp_width(), sapp_height());
+    sg_apply_pipeline(g.pipe);
+    sg_apply_bindings(&g.bind);
 
     for(unsigned int i = 0; i < 10; i++) {
-        state.vs_params.model = HMM_MulM4(HMM_M4D(1.0f), HMM_Translate(cubePositions[i]));
-        state.vs_params.model = HMM_MulM4(state.vs_params.model, HMM_Rotate_RH(HMM_AngleDeg(20.0f*i), HMM_V3(1.0f, 0.3f, 0.5f)));
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(state.vs_params));
+        g.shader.model = HMM_MulM4(HMM_M4D(1.0f), HMM_Translate(cubePositions[i]));
+        g.shader.model = HMM_MulM4(g.shader.model, HMM_Rotate_RH(HMM_AngleDeg(20.0f*i), HMM_V3(1.0f, 0.3f, 0.5f)));
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(g.shader));
         sg_draw(0, 36, 1);
     }
 
