@@ -39,7 +39,7 @@ static void cleanup(void);
 
 static struct {
     // app
-    f32 delta;
+    f32 time;
 
     struct {
         HMM_Vec3 position;
@@ -224,18 +224,19 @@ static void event(const sapp_event* ev) {
             sapp_quit();
         }
 
-        const float cameraSpeed = 0.05f; // adjust accordingly
+        const float delta = 5.0 * sapp_frame_duration();
+
         if (ev->key_code == SAPP_KEYCODE_W) {
-            state.camera.position = HMM_AddV3(state.camera.position, HMM_MulV3F(state.camera.front, cameraSpeed));
+            state.camera.position = HMM_AddV3(state.camera.position, HMM_MulV3F(state.camera.front, delta));
         }
         if (ev->key_code == SAPP_KEYCODE_S) {
-            state.camera.position = HMM_SubV3(state.camera.position, HMM_MulV3F(state.camera.front, cameraSpeed));
+            state.camera.position = HMM_SubV3(state.camera.position, HMM_MulV3F(state.camera.front, delta));
         }
         if (ev->key_code == SAPP_KEYCODE_A) {
-            state.camera.position = HMM_SubV3(state.camera.position, HMM_MulV3F(HMM_NormV3(HMM_Cross(state.camera.front, state.camera.up)), cameraSpeed));
+            state.camera.position = HMM_SubV3(state.camera.position, HMM_MulV3F(HMM_NormV3(HMM_Cross(state.camera.front, state.camera.up)), delta));
         }
         if (ev->key_code == SAPP_KEYCODE_D) {
-            state.camera.position = HMM_AddV3(state.camera.position, HMM_MulV3F(HMM_NormV3(HMM_Cross(state.camera.front, state.camera.up)), cameraSpeed));
+            state.camera.position = HMM_AddV3(state.camera.position, HMM_MulV3F(HMM_NormV3(HMM_Cross(state.camera.front, state.camera.up)), delta));
         }
     }
 }
@@ -248,7 +249,7 @@ static void frame(void) {
         .dpi_scale = sapp_dpi_scale(),
     });
 
-    state.delta += (f32)sapp_frame_duration();
+    state.time += (f32)sapp_frame_duration();
 
     HMM_Vec3 cubePositions[] = {
         HMM_V3( 0.0f,  0.0f,  0.0f),
