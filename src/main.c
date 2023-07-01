@@ -41,6 +41,14 @@ static struct {
     // app
     f32 delta;
 
+    struct {
+        HMM_Vec3 position;
+        HMM_Vec3 target;
+        HMM_Vec3 direction;
+        HMM_Vec3 right;
+        HMM_Vec3 up;
+    } camera ;
+
     vs_params_t vs_params;
 
     // sokol
@@ -78,6 +86,14 @@ static void init(void) {
     simgui_setup(&(simgui_desc_t){ 0 });
 
     state.vs_params.uSlider = 0.2f;
+    /* state.camera.position = HMM_V3(0.0f, 0.0f, 3.0f); */
+    /* state.camera.target = HMM_V3(0.0f, 0.0f, 0.0f); */
+    /* // The name direction vector is not the best chosen name, since it is actually pointing in the reverse direction of what it is targeting. */
+    /* state.camera.direction = HMM_NormV3(HMM_SubV3(state.camera.position, state.camera.target)); */
+
+    /* HMM_Vec3 up = HMM_V3(0.0f, 1.0f, 0.0f); */
+    /* state.camera.right = HMM_NormV3(HMM_Cross(up, state.camera.target)); */
+    /* state.camera.up = HMM_Cross(state.camera.direction, state.camera.right); */
 
     // vertex buffer object
     vertex vertices[] = {
@@ -240,7 +256,11 @@ static void frame(void) {
         HMM_V3(-1.3f,  1.0f, -1.5f)
     };
 
-    state.vs_params.view = HMM_MulM4(HMM_M4D(1.0f), HMM_Translate(HMM_V3(0.0, 0.0, -3.0)));
+
+    const float radius = 10.0f;
+    float camX = sin(state.delta) * radius;
+    float camZ = cos(state.delta) * radius;
+    state.vs_params.view = HMM_LookAt_RH(HMM_V3(camX, 0.0f, camZ), HMM_V3(0.0f, 0.0f, 0.0f), HMM_V3(0.0f, 0.1f, 0.0f));
     state.vs_params.projection = HMM_Perspective_RH_NO(HMM_AngleDeg(45.0f), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
 
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
