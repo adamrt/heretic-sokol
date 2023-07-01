@@ -48,6 +48,8 @@ static struct {
 
         f32 pitch;
         f32 yaw;
+
+        f32 fov;
     } camera ;
 
     vs_params_t vs_params;
@@ -92,6 +94,7 @@ static void init(void) {
     state.camera.up = HMM_V3(0.0f, 0.1f, 0.0f);
     state.camera.yaw = -90.0f;
     state.camera.pitch = 0.0;
+    state.camera.fov = 45.0;
 
     // vertex buffer object
     vertex vertices[] = {
@@ -227,6 +230,12 @@ static void event(const sapp_event* ev) {
         return;
     };
     switch (ev->type) {
+    case SAPP_EVENTTYPE_MOUSE_SCROLL:
+        state.camera.fov -= ev->scroll_y;
+        if (state.camera.fov < 1.0f) state.camera.fov = 1.0f;
+        if (state.camera.fov > 45.0f) state.camera.fov = 45.0f;
+        break;
+
     case SAPP_EVENTTYPE_MOUSE_DOWN:
         if (ev->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
             sapp_lock_mouse(true);
@@ -306,7 +315,7 @@ static void frame(void) {
     state.camera.front = HMM_NormV3(direction);
 
     state.vs_params.view = HMM_LookAt_RH(state.camera.position, HMM_AddV3(state.camera.position, state.camera.front), state.camera.up);
-    state.vs_params.projection = HMM_Perspective_RH_NO(HMM_AngleDeg(45.0f), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
+    state.vs_params.projection = HMM_Perspective_RH_NO(HMM_AngleDeg(state.camera.fov), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
 
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);
