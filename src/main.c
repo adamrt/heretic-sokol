@@ -79,29 +79,68 @@ static void init(void) {
 
     state.vs_params.uSlider = 0.2f;
 
+
     // vertex buffer object
     vertex vertices[] = {
-          // positions         // texcoords
-        { 0.5f,  0.5f, 0.0f,   1.0f, 1.0f}, // top right
-        { 0.5f, -0.5f, 0.0f,   1.0f, 0.0f}, // bottom right
-        {-0.5f, -0.5f, 0.0f,   0.0f, 0.0f}, // bottom left
-        {-0.5f,  0.5f, 0.0f,   0.0f, 1.0f}, // top left
+        // positions           // texcoords
+        {-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+        { 0.5f, -0.5f, -0.5f,  1.0f, 0.0f},
+        { 0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
+        { 0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
+        {-0.5f,  0.5f, -0.5f,  0.0f, 1.0f},
+        {-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+
+        {-0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
+        { 0.5f, -0.5f,  0.5f,  1.0f, 0.0f},
+        { 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+        { 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+        {-0.5f,  0.5f,  0.5f,  0.0f, 1.0f},
+        {-0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
+
+        {-0.5f,  0.5f,  0.5f,  1.0f, 0.0f},
+        {-0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
+        {-0.5f, -0.5f, -0.5f,  0.0f, 1.0f},
+        {-0.5f, -0.5f, -0.5f,  0.0f, 1.0f},
+        {-0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
+        {-0.5f,  0.5f,  0.5f,  1.0f, 0.0f},
+
+        { 0.5f,  0.5f,  0.5f,  1.0f, 0.0f},
+        { 0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
+        { 0.5f, -0.5f, -0.5f,  0.0f, 1.0f},
+        { 0.5f, -0.5f, -0.5f,  0.0f, 1.0f},
+        { 0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
+        { 0.5f,  0.5f,  0.5f,  1.0f, 0.0f},
+
+        {-0.5f, -0.5f, -0.5f,  0.0f, 1.0f},
+        { 0.5f, -0.5f, -0.5f,  1.0f, 1.0f},
+        { 0.5f, -0.5f,  0.5f,  1.0f, 0.0f},
+        { 0.5f, -0.5f,  0.5f,  1.0f, 0.0f},
+        {-0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
+        {-0.5f, -0.5f, -0.5f,  0.0f, 1.0f},
+
+        {-0.5f,  0.5f, -0.5f,  0.0f, 1.0f},
+        { 0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
+        { 0.5f,  0.5f,  0.5f,  1.0f, 0.0f},
+        { 0.5f,  0.5f,  0.5f,  1.0f, 0.0f},
+        {-0.5f,  0.5f,  0.5f,  0.0f, 0.0f},
+        {-0.5f,  0.5f, -0.5f,  0.0f, 1.0f},
     };
+
     state.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
         .data = SG_RANGE(vertices),
-        .label = "square-vertices"
+        .label = "cube-vertices"
     });
 
-    // element buffer object
-    u16 indices[] = {
-        0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
-    };
-    state.bind.index_buffer = sg_make_buffer(&(sg_buffer_desc){
-        .type = SG_BUFFERTYPE_INDEXBUFFER,
-        .data = SG_RANGE(indices),
-        .label = "square-indices"
-    });
+    /* // element buffer object */
+    /* u16 indices[] = { */
+    /*     0, 1, 3,   // first triangle */
+    /*     1, 2, 3    // second triangle */
+    /* }; */
+    /* state.bind.index_buffer = sg_make_buffer(&(sg_buffer_desc){ */
+    /*     .type = SG_BUFFERTYPE_INDEXBUFFER, */
+    /*     .data = SG_RANGE(indices), */
+    /*     .label = "cube-indices" */
+    /* }); */
 
     // create shader
     sg_shader shd = sg_make_shader(basic_shader_desc(sg_query_backend()));
@@ -109,14 +148,18 @@ static void init(void) {
     // create pipeline object
     state.pipe = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = shd,
-        .index_type = SG_INDEXTYPE_UINT16,
+        // .index_type = SG_INDEXTYPE_UINT16,
         .layout = {
             .attrs = {
                 [ATTR_vs_aPos].format = SG_VERTEXFORMAT_FLOAT3,
                 [ATTR_vs_aTexCoord].format = SG_VERTEXFORMAT_FLOAT2,
             }
         },
-        .label = "square-pipeline"
+        .depth = {
+            .compare = SG_COMPAREFUNC_LESS_EQUAL,
+            .write_enabled = true
+        },
+        .label = "cube-pipeline"
     });
 
     stbi_set_flip_vertically_on_load(true);
@@ -185,7 +228,7 @@ static void frame(void) {
 
     state.delta += (f32)sapp_frame_duration();
 
-    state.vs_params.model = HMM_MulM4(HMM_M4D(1.0f), HMM_Rotate_RH(HMM_AngleDeg(-55.0f), HMM_V3(1.0, 0.0, 0.0)));
+    state.vs_params.model = HMM_MulM4(HMM_M4D(1.0f), HMM_Rotate_RH(state.delta * HMM_AngleDeg(-55.0f), HMM_V3(0.5f, 1.0f, 0.0f)));
     state.vs_params.view = HMM_MulM4(HMM_M4D(1.0f), HMM_Translate(HMM_V3(0.0, 0.0, -3.0)));
     state.vs_params.projection = HMM_Perspective_RH_NO(HMM_AngleDeg(45.0f), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
 
@@ -201,7 +244,7 @@ static void frame(void) {
     sg_apply_bindings(&state.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(state.vs_params));
 
-    sg_draw(0, 6, 1);
+    sg_draw(0, 36, 1);
 
     simgui_render();
     sg_end_pass();
