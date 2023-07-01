@@ -79,7 +79,6 @@ static void init(void) {
 
     state.vs_params.uSlider = 0.2f;
 
-
     // vertex buffer object
     vertex vertices[] = {
         // positions           // texcoords
@@ -228,7 +227,19 @@ static void frame(void) {
 
     state.delta += (f32)sapp_frame_duration();
 
-    state.vs_params.model = HMM_MulM4(HMM_M4D(1.0f), HMM_Rotate_RH(state.delta * HMM_AngleDeg(-55.0f), HMM_V3(0.5f, 1.0f, 0.0f)));
+    HMM_Vec3 cubePositions[] = {
+        HMM_V3( 0.0f,  0.0f,  0.0f),
+        HMM_V3( 2.0f,  5.0f, -15.0f),
+        HMM_V3(-1.5f, -2.2f, -2.5f),
+        HMM_V3(-3.8f, -2.0f, -12.3f),
+        HMM_V3( 2.4f, -0.4f, -3.5f),
+        HMM_V3(-1.7f,  3.0f, -7.5f),
+        HMM_V3( 1.3f, -2.0f, -2.5f),
+        HMM_V3( 1.5f,  2.0f, -2.5f),
+        HMM_V3( 1.5f,  0.2f, -1.5f),
+        HMM_V3(-1.3f,  1.0f, -1.5f)
+    };
+
     state.vs_params.view = HMM_MulM4(HMM_M4D(1.0f), HMM_Translate(HMM_V3(0.0, 0.0, -3.0)));
     state.vs_params.projection = HMM_Perspective_RH_NO(HMM_AngleDeg(45.0f), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
 
@@ -242,9 +253,13 @@ static void frame(void) {
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
     sg_apply_pipeline(state.pipe);
     sg_apply_bindings(&state.bind);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(state.vs_params));
 
-    sg_draw(0, 36, 1);
+    for(unsigned int i = 0; i < 10; i++) {
+        state.vs_params.model = HMM_MulM4(HMM_M4D(1.0f), HMM_Translate(cubePositions[i]));
+        state.vs_params.model = HMM_MulM4(state.vs_params.model, HMM_Rotate_RH(HMM_AngleDeg(20.0f*i), HMM_V3(1.0f, 0.3f, 0.5f)));
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(state.vs_params));
+        sg_draw(0, 36, 1);
+    }
 
     simgui_render();
     sg_end_pass();
