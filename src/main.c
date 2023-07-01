@@ -184,10 +184,10 @@ static void frame(void) {
     });
 
     state.delta += (f32)sapp_frame_duration();
-    HMM_Mat4 trans = HMM_M4D(1.0f);
-    trans = HMM_MulM4(trans, HMM_Translate(HMM_V3(0.5f, -0.5f, 0.0f)));
-    trans = HMM_MulM4(trans, HMM_Rotate_RH(state.delta, HMM_V3(0.0, 0.0, 1.0)));
-    state.vs_params.transform = trans;
+
+    state.vs_params.model = HMM_MulM4(HMM_M4D(1.0f), HMM_Rotate_RH(HMM_AngleDeg(-55.0f), HMM_V3(1.0, 0.0, 0.0)));
+    state.vs_params.view = HMM_MulM4(HMM_M4D(1.0f), HMM_Translate(HMM_V3(0.0, 0.0, -3.0)));
+    state.vs_params.projection = HMM_Perspective_RH_NO(HMM_AngleDeg(45.0f), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
 
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);

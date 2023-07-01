@@ -3,7 +3,10 @@
 @vs vs
 uniform vs_params {
     float uSlider;
-    mat4 transform;
+
+    mat4 model;
+    mat4 view;
+    mat4 projection;
 };
 
 in vec3 aPos;
@@ -14,7 +17,7 @@ out float slider;
 
 void main()
 {
-    gl_Position = transform * vec4(aPos, 1.0f);
+    gl_Position = projection * view * model * vec4(aPos, 1.0f);
     uv = aTexCoord;
     slider = uSlider;
 }
