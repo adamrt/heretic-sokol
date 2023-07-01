@@ -45,6 +45,9 @@ static struct {
         HMM_Vec3 position;
         HMM_Vec3 front;
         HMM_Vec3 up;
+
+        f32 pitch;
+        f32 yaw;
     } camera ;
 
     vs_params_t vs_params;
@@ -87,6 +90,8 @@ static void init(void) {
     state.camera.position = HMM_V3(0.0f, 0.0f, 3.0f);
     state.camera.front = HMM_V3(0.0f, 0.0f, -1.0f);
     state.camera.up = HMM_V3(0.0f, 0.1f, 0.0f);
+    state.camera.yaw = -90.0f;
+    state.camera.pitch = 0.0;
 
     // vertex buffer object
     vertex vertices[] = {
@@ -218,7 +223,36 @@ static void init(void) {
 }
 
 static void event(const sapp_event* ev) {
-    simgui_handle_event(ev);
+    if (simgui_handle_event(ev)) {
+        return;
+    };
+    switch (ev->type) {
+    case SAPP_EVENTTYPE_MOUSE_DOWN:
+        if (ev->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+            sapp_lock_mouse(true);
+        }
+        break;
+
+    case SAPP_EVENTTYPE_MOUSE_UP:
+        if (ev->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+            sapp_lock_mouse(false);
+        }
+        break;
+
+    case SAPP_EVENTTYPE_MOUSE_MOVE:
+        if (sapp_mouse_locked()) {
+            const f32 sensitivity = 0.5f;
+            state.camera.pitch -= ev->mouse_dy * sensitivity;
+            state.camera.yaw += ev->mouse_dx * sensitivity;
+            if (state.camera.pitch > 89.0f) state.camera.pitch = 89.0f;
+            if (state.camera.pitch < -89.0f) state.camera.pitch = -89.0f;
+        }
+        break;
+
+    default:
+        break;
+    }
+
     if (ev->type == SAPP_EVENTTYPE_KEY_DOWN) {
         if (ev->key_code == SAPP_KEYCODE_ESCAPE) {
             sapp_quit();
@@ -264,6 +298,13 @@ static void frame(void) {
         HMM_V3(-1.3f,  1.0f, -1.5f)
     };
 
+    HMM_Vec3 direction = {
+        .X = cos(HMM_AngleDeg(state.camera.yaw)) * cos(HMM_AngleDeg(state.camera.pitch)),
+        .Y = sin(HMM_AngleDeg(state.camera.pitch)),
+        .Z = sin(HMM_AngleDeg(state.camera.yaw)) * cos(HMM_AngleDeg(state.camera.pitch)),
+    };
+    state.camera.front = HMM_NormV3(direction);
+
     state.vs_params.view = HMM_LookAt_RH(state.camera.position, HMM_AddV3(state.camera.position, state.camera.front), state.camera.up);
     state.vs_params.projection = HMM_Perspective_RH_NO(HMM_AngleDeg(45.0f), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
 
@@ -272,6 +313,9 @@ static void frame(void) {
     igBegin("Dear ImGui!", 0, ImGuiWindowFlags_None);
     igColorEdit3("Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
     igSliderFloat("Slider", &state.vs_params.uSlider,0.0, 1.0, "%0.2f", 0);
+    igSliderFloat("Pitch", &state.camera.pitch,-89.0, 89.0, "%0.2f", 0);
+    igSliderFloat("Yaw", &state.camera.yaw,-360.0, 360.0, "%0.2f", 0);
+
     igEnd();
 
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
