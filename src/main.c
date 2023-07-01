@@ -47,7 +47,7 @@ static struct {
     f32 time;
 
     struct {
-        HMM_Vec3 pos, front, up;
+        vec3_t pos, front, up;
         f32 pitch, yaw, fov;
     } cam ;
 
@@ -89,9 +89,9 @@ static void init(void) {
     g.shader.uSlider = 0.2f;
 
     // Camera init
-    g.cam.pos = HMM_V3(0.0f, 0.0f, 3.0f);
-    g.cam.front = HMM_V3(0.0f, 0.0f, -1.0f);
-    g.cam.up = HMM_V3(0.0f, 0.1f, 0.0f);
+    g.cam.pos = v3_new(0.0f, 0.0f, 3.0f);
+    g.cam.front = v3_new(0.0f, 0.0f, -1.0f);
+    g.cam.up = v3_new(0.0f, 0.1f, 0.0f);
     g.cam.yaw = -90.0f;
     g.cam.pitch = 0.0;
     g.cam.fov = 45.0;
@@ -279,16 +279,16 @@ static void event(const sapp_event* ev) {
 static void process_input(void) {
     const float delta = 5.0 * sapp_frame_duration();
     if (poll_keydown(SAPP_KEYCODE_W)) {
-        g.cam.pos = HMM_AddV3(g.cam.pos, HMM_MulV3F(g.cam.front, delta));
+        g.cam.pos = v3_add(g.cam.pos, v3_mulf(g.cam.front, delta));
     }
     if (poll_keydown(SAPP_KEYCODE_S)) {
-        g.cam.pos = HMM_SubV3(g.cam.pos, HMM_MulV3F(g.cam.front, delta));
+        g.cam.pos = v3_sub(g.cam.pos, v3_mulf(g.cam.front, delta));
     }
     if (poll_keydown(SAPP_KEYCODE_A)) {
-        g.cam.pos = HMM_SubV3(g.cam.pos, HMM_MulV3F(HMM_NormV3(HMM_Cross(g.cam.front, g.cam.up)), delta));
+        g.cam.pos = v3_sub(g.cam.pos, v3_mulf(v3_norm(v3_cross(g.cam.front, g.cam.up)), delta));
     }
     if (poll_keydown(SAPP_KEYCODE_D)) {
-        g.cam.pos = HMM_AddV3(g.cam.pos, HMM_MulV3F(HMM_NormV3(HMM_Cross(g.cam.front, g.cam.up)), delta));
+        g.cam.pos = v3_add(g.cam.pos, v3_mulf(v3_norm(v3_cross(g.cam.front, g.cam.up)), delta));
     }
 }
 
@@ -304,28 +304,28 @@ static void frame(void) {
 
     process_input();
 
-    HMM_Vec3 cubePositions[] = {
-        HMM_V3( 0.0f,  0.0f,  0.0f),
-        HMM_V3( 2.0f,  5.0f, -15.0f),
-        HMM_V3(-1.5f, -2.2f, -2.5f),
-        HMM_V3(-3.8f, -2.0f, -12.3f),
-        HMM_V3( 2.4f, -0.4f, -3.5f),
-        HMM_V3(-1.7f,  3.0f, -7.5f),
-        HMM_V3( 1.3f, -2.0f, -2.5f),
-        HMM_V3( 1.5f,  2.0f, -2.5f),
-        HMM_V3( 1.5f,  0.2f, -1.5f),
-        HMM_V3(-1.3f,  1.0f, -1.5f)
+    vec3_t cubePositions[] = {
+        v3_new( 0.0f,  0.0f,  0.0f),
+        v3_new( 2.0f,  5.0f, -15.0f),
+        v3_new(-1.5f, -2.2f, -2.5f),
+        v3_new(-3.8f, -2.0f, -12.3f),
+        v3_new( 2.4f, -0.4f, -3.5f),
+        v3_new(-1.7f,  3.0f, -7.5f),
+        v3_new( 1.3f, -2.0f, -2.5f),
+        v3_new( 1.5f,  2.0f, -2.5f),
+        v3_new( 1.5f,  0.2f, -1.5f),
+        v3_new(-1.3f,  1.0f, -1.5f)
     };
 
-    HMM_Vec3 direction = {
-        .X = cos(HMM_AngleDeg(g.cam.yaw)) * cos(HMM_AngleDeg(g.cam.pitch)),
-        .Y = sin(HMM_AngleDeg(g.cam.pitch)),
-        .Z = sin(HMM_AngleDeg(g.cam.yaw)) * cos(HMM_AngleDeg(g.cam.pitch)),
+    vec3_t direction = {
+        .X = cos(angle_deg(g.cam.yaw)) * cos(angle_deg(g.cam.pitch)),
+        .Y = sin(angle_deg(g.cam.pitch)),
+        .Z = sin(angle_deg(g.cam.yaw)) * cos(angle_deg(g.cam.pitch)),
     };
-    g.cam.front = HMM_NormV3(direction);
+    g.cam.front = v3_norm(direction);
 
-    g.shader.view = HMM_LookAt_RH(g.cam.pos, HMM_AddV3(g.cam.pos, g.cam.front), g.cam.up);
-    g.shader.projection = HMM_Perspective_RH_NO(HMM_AngleDeg(g.cam.fov), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
+    g.shader.view = m4_lookat(g.cam.pos, v3_add(g.cam.pos, g.cam.front), g.cam.up);
+    g.shader.projection = m4_perspective(angle_deg(g.cam.fov), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
 
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);
@@ -342,8 +342,8 @@ static void frame(void) {
     sg_apply_bindings(&g.bind);
 
     for(unsigned int i = 0; i < 10; i++) {
-        g.shader.model = HMM_MulM4(HMM_M4D(1.0f), HMM_Translate(cubePositions[i]));
-        g.shader.model = HMM_MulM4(g.shader.model, HMM_Rotate_RH(HMM_AngleDeg(20.0f*i), HMM_V3(1.0f, 0.3f, 0.5f)));
+        g.shader.model = m4_mul(m4_new(1.0f), m4_translate(cubePositions[i]));
+        g.shader.model = m4_mul(g.shader.model, m4_rotate(angle_deg(20.0f*i), v3_new(1.0f, 0.3f, 0.5f)));
         sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(g.shader));
         sg_draw(0, 36, 1);
     }
