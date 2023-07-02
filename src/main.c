@@ -105,43 +105,44 @@ static void init(void) {
 
     // create pipeline object
     g.pipe_object = sg_make_pipeline(&(sg_pipeline_desc){
-        .shader = sg_make_shader(notex_shader_desc(sg_query_backend())),
+        .shader = sg_make_shader(basic_shader_desc(sg_query_backend())),
         .layout = {
             .attrs = {
-                [ATTR_vs_notex_aPos].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_notex_aNormal].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_basic_aPos].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_basic_aNormal].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_basic_aTexCoords].format = SG_VERTEXFORMAT_FLOAT2,
             }
         },
         .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
         .label = "cube-pipeline"
     });
 
-    /* stbi_set_flip_vertically_on_load(true); */
-    /* int desired_nch = 4; */
+    stbi_set_flip_vertically_on_load(true);
+    int desired_nch = 4;
 
-    /* int wood_w, wood_h, wood_nch; */
-    /* unsigned char *wood = stbi_load("./res/wood.jpg", &wood_w, &wood_h, &wood_nch, desired_nch); */
-    /* if (wood == NULL) { */
-    /*     printf("failed to open image\n"); */
-    /*     exit(1); */
-    /* }; */
-    /* g.bind_object.fs_images[SLOT_texture1] = sg_alloc_image(); */
-    /* sg_init_image(g.bind_object.fs_images[SLOT_texture1], &(sg_image_desc){ */
-    /*     .width = wood_w, */
-    /*     .height = wood_h, */
-    /*     .pixel_format = SG_PIXELFORMAT_RGBA8, */
-    /*     .data.subimage[0][0] = { */
-    /*         .ptr = wood, */
-    /*         .size = (size_t)(wood_w * wood_h * 4), */
-    /*     }, */
-    /*     .label = "wood-container-texture" */
-    /* }); */
-    /* stbi_image_free(wood); */
+    int wood_w, wood_h, wood_nch;
+    unsigned char *wood = stbi_load("./res/container2.png", &wood_w, &wood_h, &wood_nch, desired_nch);
+    if (wood == NULL) {
+        printf("failed to open image\n");
+        exit(1);
+    };
+    g.bind_object.fs_images[SLOT_texture1] = sg_alloc_image();
+    sg_init_image(g.bind_object.fs_images[SLOT_texture1], &(sg_image_desc){
+        .width = wood_w,
+        .height = wood_h,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .data.subimage[0][0] = {
+            .ptr = wood,
+            .size = (size_t)(wood_w * wood_h * 4),
+        },
+        .label = "wood-container-texture"
+    });
+    stbi_image_free(wood);
 
     g.pipe_light = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = sg_make_shader(light_shader_desc(sg_query_backend())),
         .layout = {
-            .buffers[0].stride = 24,
+            .buffers[0].stride = 32,
             .attrs = {
                 [ATTR_vs_light_aPos].format = SG_VERTEXFORMAT_FLOAT3,
             }
@@ -212,7 +213,7 @@ static void frame(void) {
         sg_apply_bindings(&g.bind_object);
 
         // Vertex
-        mat4_t model = m4_mul(m4_new(1.0f), m4_rotate(angle_deg(g.rotate_amt), v3_new(0.2f, 0.5f, 0.3f)));
+        mat4_t model = m4_mul(m4_new(1.0f), m4_rotate(angle_deg(g.rotate_amt), v3_new(0.0f, 1.f, 0.0f)));
         vs_notex_params_t vs_params = {
             .projection = g.cam.proj,
             .view = g.cam.view,
