@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "hmmmath.h"
 
 typedef int8_t   i8;
 typedef int16_t  i16;
@@ -12,6 +13,7 @@ typedef float    f32;
 typedef double   f64;
 
 typedef struct {
-    f32 x, y, z;
-    f32 u, v;
+    vec3_t point;
+    vec2_t tex_coords;
+    vec3_t normal;
 } vertex_t;

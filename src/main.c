@@ -41,16 +41,17 @@ static void draw_ui(void);
 
 static struct {
     f32 time;
+    bool rotate;
+    f32  rotate_amt;
+
     struct {
         vec3_t pos, front, up;
         f32 pitch, yaw, fov;
-    } cam ;
+        mat4_t view, proj;
+    } cam;
 
-    vec3_t object_color;
     vec3_t light_color;
     vec3_t light_pos;
-
-    vs_params_t vs_shader;
 
     sg_pipeline pipe_object;
     sg_pipeline pipe_light;
@@ -84,9 +85,11 @@ static void init(void) {
 
     camera_init();
 
-    g.object_color = v3_new(1.0f, 0.5f, 0.31f);
+    g.rotate = false;
+    g.rotate_amt = 0.0;
+
     g.light_color = v3_new(1.0f, 1.0f, 1.0f);
-    g.light_pos = v3_new(1.2f, 1.0f, 2.0f);
+    g.light_pos = v3_new(1.0f, 0.0f, 0.0f);
 
     g.bind_object.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
         .data = SG_RANGE(cube_vertices),
@@ -105,6 +108,7 @@ static void init(void) {
             .attrs = {
                 [ATTR_vs_basic_aPos].format = SG_VERTEXFORMAT_FLOAT3,
                 [ATTR_vs_basic_aTexCoord].format = SG_VERTEXFORMAT_FLOAT2,
+                [ATTR_vs_basic_aNormal].format = SG_VERTEXFORMAT_FLOAT3,
             }
         },
         .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
@@ -136,7 +140,7 @@ static void init(void) {
     g.pipe_light = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = sg_make_shader(light_shader_desc(sg_query_backend())),
         .layout = {
-            .buffers[0].stride = 20,
+            .buffers[0].stride = 32,
             .attrs = {
                 [ATTR_vs_light_aPos].format = SG_VERTEXFORMAT_FLOAT3,
             }
@@ -191,6 +195,9 @@ static void frame(void) {
     });
 
     g.time += (f32)sapp_frame_duration();
+    if (g.rotate) {
+        g.rotate_amt += (f32)sapp_frame_duration() *60.0;
+    }
 
     process_input();
     camera_update();
@@ -204,11 +211,19 @@ static void frame(void) {
         sg_apply_bindings(&g.bind_object);
 
         // Vertex
-        g.vs_shader.model = m4_new(1.0f);
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(g.vs_shader));
+        mat4_t model = m4_mul(m4_new(1.0f), m4_rotate(angle_deg(g.rotate_amt), v3_new(0.2f, 0.5f, 0.3f)));
+        vs_basic_params_t vs_params = {
+            .projection = g.cam.proj,
+            .view = g.cam.view,
+            .model = model,
+        };
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_basic_params, &SG_RANGE(vs_params));
 
         // Fragment
-        fs_basic_params_t fs_params = {.lightColor = g.light_color,};
+        fs_basic_params_t fs_params = {
+            .lightColor = g.light_color,
+            .lightPos   = g.light_pos,
+        };
         sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_basic_params, &SG_RANGE(fs_params));
 
         sg_draw(0, 36, 1);
@@ -220,11 +235,14 @@ static void frame(void) {
         sg_apply_bindings(&g.bind_light);
 
         // Vertex
-        // Overwrite shader model
         mat4_t model = m4_mul(m4_new(1.0f), m4_translate(g.light_pos));
         model = m4_mul(model, m4_scale(v3_new(0.2f, 0.2f, 0.2f)));
-        g.vs_shader.model = model;
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(g.vs_shader));
+        vs_light_params_t vs_params = {
+            .projection = g.cam.proj,
+            .view = g.cam.view,
+            .model = model,
+        };
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_light_params, &SG_RANGE(vs_params));
 
         sg_draw(0, 36, 1);
     }
@@ -238,6 +256,7 @@ static void draw_ui(void) {
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){400, 150}, ImGuiCond_Once);
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
+    igCheckbox("Rotate", &g.rotate);
     igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
     igSliderFloat("Pitch", &g.cam.pitch,-89.0, 89.0, "%0.2f", 0);
     igSliderFloat("Yaw", &g.cam.yaw,-360.0, 360.0, "%0.2f", 0);
@@ -285,8 +304,8 @@ static void camera_update(void) {
     };
     g.cam.front = v3_norm(direction);
 
-    g.vs_shader.view = m4_lookat(g.cam.pos, v3_add(g.cam.pos, g.cam.front), g.cam.up);
-    g.vs_shader.projection = m4_perspective(angle_deg(g.cam.fov), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
+    g.cam.view = m4_lookat(g.cam.pos, v3_add(g.cam.pos, g.cam.front), g.cam.up);
+    g.cam.proj = m4_perspective(angle_deg(g.cam.fov), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
 }
 
 static void camera_init(void) {
