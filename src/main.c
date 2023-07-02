@@ -43,6 +43,7 @@ static struct {
     f32 time;
     bool rotate;
     f32  rotate_amt;
+    f32  rotate_spd;
 
     struct {
         vec3_t pos, front, up;
@@ -86,10 +87,11 @@ static void init(void) {
     camera_init();
 
     g.rotate = false;
-    g.rotate_amt = 0.0;
+    g.rotate_amt = 0.0f;
+    g.rotate_spd = 0.5f;
 
     g.light_color = v3_new(1.0f, 1.0f, 1.0f);
-    g.light_pos = v3_new(1.0f, 0.0f, 0.0f);
+    g.light_pos = v3_new(0.0f, 0.0f, 1.0f);
 
     g.bind_object.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
         .data = SG_RANGE(cube_vertices),
@@ -196,7 +198,7 @@ static void frame(void) {
 
     g.time += (f32)sapp_frame_duration();
     if (g.rotate) {
-        g.rotate_amt += (f32)sapp_frame_duration() *60.0;
+        g.rotate_amt += (f32)sapp_frame_duration() * 60.0 * g.rotate_spd;
     }
 
     process_input();
@@ -257,6 +259,7 @@ static void draw_ui(void) {
     igSetNextWindowSize((ImVec2){400, 150}, ImGuiCond_Once);
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
     igCheckbox("Rotate", &g.rotate);
+    igSliderFloat("RotateSpeed", &g.rotate_spd, 0.0f, 1.0f, "%0.2f", 0);
     igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
     igSliderFloat("Pitch", &g.cam.pitch,-89.0, 89.0, "%0.2f", 0);
     igSliderFloat("Yaw", &g.cam.yaw,-360.0, 360.0, "%0.2f", 0);

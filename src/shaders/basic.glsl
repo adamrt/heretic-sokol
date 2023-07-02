@@ -20,7 +20,11 @@ void main()
 {
     gl_Position = projection * view * model * vec4(aPos, 1.0f);
     uv = aTexCoord;
+    // This transforms the normal by the normal matrix. The normal
+    // matrix is created here, but its expensive. This should could be
+    // done on the CPU and sent in as a uniform.
     Normal = mat3(transpose(inverse(model))) * aNormal;
+    // The position of the worldspace fragment to calculate light.
     FragPos = vec3(model * vec4(aPos, 1.0));
 }
 @end
@@ -41,17 +45,20 @@ uniform sampler2D texture1;
 
 void main()
 {
+    // Ambient Light
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * lightColor;
 
+    // Diffuse Light
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightColor;
 
-    vec4 result = texture(texture1, uv) * vec4(ambient + diffuse, 1.0);
+    // Texture
+    vec4 tex = texture(texture1, uv);
 
-    FragColor = result;
+    FragColor = tex * vec4(ambient + diffuse, 1.0);
 }
 @end
 
