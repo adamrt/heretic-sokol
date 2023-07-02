@@ -13,7 +13,6 @@ typedef float    f32;
 typedef double   f64;
 
 typedef struct {
-    vec3_t point;
-    vec2_t tex_coords;
+    vec3_t position;
     vec3_t normal;
 } vertex_t;

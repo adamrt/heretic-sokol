@@ -91,7 +91,7 @@ static void init(void) {
     g.rotate_spd = 0.5f;
 
     g.light_color = v3_new(1.0f, 1.0f, 1.0f);
-    g.light_pos = v3_new(0.0f, 0.0f, 1.0f);
+    g.light_pos = v3_new(0.0f, 0.0f, 2.0f);
 
     g.bind_object.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
         .data = SG_RANGE(cube_vertices),
@@ -109,7 +109,6 @@ static void init(void) {
         .layout = {
             .attrs = {
                 [ATTR_vs_basic_aPos].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_basic_aTexCoord].format = SG_VERTEXFORMAT_FLOAT2,
                 [ATTR_vs_basic_aNormal].format = SG_VERTEXFORMAT_FLOAT3,
             }
         },
@@ -117,32 +116,32 @@ static void init(void) {
         .label = "cube-pipeline"
     });
 
-    stbi_set_flip_vertically_on_load(true);
-    int desired_nch = 4;
+    /* stbi_set_flip_vertically_on_load(true); */
+    /* int desired_nch = 4; */
 
-    int wood_w, wood_h, wood_nch;
-    unsigned char *wood = stbi_load("./res/wood.jpg", &wood_w, &wood_h, &wood_nch, desired_nch);
-    if (wood == NULL) {
-        printf("failed to open image\n");
-        exit(1);
-    };
-    g.bind_object.fs_images[SLOT_texture1] = sg_alloc_image();
-    sg_init_image(g.bind_object.fs_images[SLOT_texture1], &(sg_image_desc){
-        .width = wood_w,
-        .height = wood_h,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = {
-            .ptr = wood,
-            .size = (size_t)(wood_w * wood_h * 4),
-        },
-        .label = "wood-container-texture"
-    });
-    stbi_image_free(wood);
+    /* int wood_w, wood_h, wood_nch; */
+    /* unsigned char *wood = stbi_load("./res/wood.jpg", &wood_w, &wood_h, &wood_nch, desired_nch); */
+    /* if (wood == NULL) { */
+    /*     printf("failed to open image\n"); */
+    /*     exit(1); */
+    /* }; */
+    /* g.bind_object.fs_images[SLOT_texture1] = sg_alloc_image(); */
+    /* sg_init_image(g.bind_object.fs_images[SLOT_texture1], &(sg_image_desc){ */
+    /*     .width = wood_w, */
+    /*     .height = wood_h, */
+    /*     .pixel_format = SG_PIXELFORMAT_RGBA8, */
+    /*     .data.subimage[0][0] = { */
+    /*         .ptr = wood, */
+    /*         .size = (size_t)(wood_w * wood_h * 4), */
+    /*     }, */
+    /*     .label = "wood-container-texture" */
+    /* }); */
+    /* stbi_image_free(wood); */
 
     g.pipe_light = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = sg_make_shader(light_shader_desc(sg_query_backend())),
         .layout = {
-            .buffers[0].stride = 32,
+            .buffers[0].stride = 24,
             .attrs = {
                 [ATTR_vs_light_aPos].format = SG_VERTEXFORMAT_FLOAT3,
             }
@@ -259,6 +258,9 @@ static void draw_ui(void) {
     igSetNextWindowSize((ImVec2){400, 150}, ImGuiCond_Once);
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
     igCheckbox("Rotate", &g.rotate);
+    igSliderFloat("X", &g.light_pos.X, -5.0f, 5.0f, "%0.2f", 0);
+    igSliderFloat("Y", &g.light_pos.Y, -5.0f, 5.0f, "%0.2f", 0);
+    igSliderFloat("Z", &g.light_pos.Z, -5.0f, 5.0f, "%0.2f", 0);
     igSliderFloat("RotateSpeed", &g.rotate_spd, 0.0f, 1.0f, "%0.2f", 0);
     igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
     igSliderFloat("Pitch", &g.cam.pitch,-89.0, 89.0, "%0.2f", 0);

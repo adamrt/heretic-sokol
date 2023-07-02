@@ -9,23 +9,22 @@ uniform vs_basic_params {
 };
 
 in vec3 aPos;
-in vec2 aTexCoord;
 in vec3 aNormal;
 
-out vec2 uv;
 out vec3 Normal;
 out vec3 FragPos;
 
 void main()
 {
-    gl_Position = projection * view * model * vec4(aPos, 1.0f);
-    uv = aTexCoord;
+    gl_Position = projection * view * model * vec4(aPos, 1.0);
+    // The position of the worldspace fragment to calculate light.
+    FragPos = vec3(model * vec4(aPos, 1.0));
     // This transforms the normal by the normal matrix. The normal
     // matrix is created here, but its expensive. This should could be
     // done on the CPU and sent in as a uniform.
     Normal = mat3(transpose(inverse(model))) * aNormal;
-    // The position of the worldspace fragment to calculate light.
-    FragPos = vec3(model * vec4(aPos, 1.0));
+
+    // FragPos = vec3(model * vec4(aPos, 1.0));
 }
 @end
 
@@ -37,11 +36,8 @@ uniform fs_basic_params {
 
 out vec4 FragColor;
 
-in vec2 uv;
 in vec3 Normal;
 in vec3 FragPos;
-
-uniform sampler2D texture1;
 
 void main()
 {
@@ -56,9 +52,9 @@ void main()
     vec3 diffuse = diff * lightColor;
 
     // Texture
-    vec4 tex = texture(texture1, uv);
-
-    FragColor = tex * vec4(ambient + diffuse, 1.0);
+    vec3 objectColor = vec3(1.0f, 0.5f, 0.31f);
+    vec3 result = (ambient + diffuse) * objectColor;
+    FragColor = vec4(result, 1.0);
 }
 @end
 
