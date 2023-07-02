@@ -21,18 +21,21 @@ void main()
 @end
 
 @fs fs_basic
-out vec4 FragColor;
-in vec2 uv;
-
 uniform fs_basic_params {
     vec3 lightColor;
 };
+
+out vec4 FragColor;
+in vec2 uv;
 
 uniform sampler2D texture1;
 
 void main()
 {
-    FragColor = texture(texture1, uv) * vec4(lightColor, 1.0);
+    float ambientStrength = 0.1;
+    vec3 ambient = ambientStrength * lightColor;
+    vec4 result = texture(texture1, uv) * vec4(ambient, 1.0);
+    FragColor = result;
 }
 @end
 
