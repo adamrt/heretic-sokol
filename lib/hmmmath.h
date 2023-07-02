@@ -1960,10 +1960,10 @@ static inline mat4_t HMM_InvRotate(mat4_t RotationMatrix)
     return HMM_TransposeM4(RotationMatrix);
 }
 
-COVERAGE(HMM_Scale, 1)
-static inline mat4_t HMM_Scale(vec3_t Scale)
+COVERAGE(m4_scale, 1)
+static inline mat4_t m4_scale(vec3_t Scale)
 {
-    ASSERT_COVERED(HMM_Scale);
+    ASSERT_COVERED(m4_scale);
 
     mat4_t Result = m4_new(1.0f);
     Result.Elements[0][0] = Scale.X;

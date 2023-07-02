@@ -45,9 +45,17 @@ static struct {
         vec3_t pos, front, up;
         f32 pitch, yaw, fov;
     } cam ;
-    vs_params_t shader;
-    sg_pipeline pipe;
-    sg_bindings bind;
+
+    vec3_t object_color;
+    vec3_t light_color;
+    vec3_t light_pos;
+
+    vs_params_t vs_shader;
+
+    sg_pipeline pipe_object;
+    sg_pipeline pipe_light;
+    sg_bindings bind_object;
+    sg_bindings bind_light;
     sg_pass_action pass_action;
 } g;
 
@@ -76,20 +84,27 @@ static void init(void) {
 
     camera_init();
 
-    g.shader.uSlider = 0.2f;
+    g.object_color = v3_new(1.0f, 0.5f, 0.31f);
+    g.light_color = v3_new(1.0f, 1.0f, 1.0f);
+    g.light_pos = v3_new(1.2f, 1.0f, 2.0f);
 
-    g.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
+    g.bind_object.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
         .data = SG_RANGE(cube_vertices),
         .label = "cube-vertices"
     });
 
+    g.bind_light.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
+        .data = SG_RANGE(cube_vertices),
+        .label = "light-vertices"
+    });
+
     // create pipeline object
-    g.pipe = sg_make_pipeline(&(sg_pipeline_desc){
+    g.pipe_object = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = sg_make_shader(basic_shader_desc(sg_query_backend())),
         .layout = {
             .attrs = {
-                [ATTR_vs_aPos].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_aTexCoord].format = SG_VERTEXFORMAT_FLOAT2,
+                [ATTR_vs_basic_aPos].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_basic_aTexCoord].format = SG_VERTEXFORMAT_FLOAT2,
             }
         },
         .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
@@ -105,8 +120,8 @@ static void init(void) {
         printf("failed to open image\n");
         exit(1);
     };
-    g.bind.fs_images[SLOT_texture1] = sg_alloc_image();
-    sg_init_image(g.bind.fs_images[SLOT_texture1], &(sg_image_desc){
+    g.bind_object.fs_images[SLOT_texture1] = sg_alloc_image();
+    sg_init_image(g.bind_object.fs_images[SLOT_texture1], &(sg_image_desc){
         .width = wood_w,
         .height = wood_h,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
@@ -118,24 +133,17 @@ static void init(void) {
     });
     stbi_image_free(wood);
 
-    int face_w, face_h, face_nch;
-    unsigned char *face = stbi_load("./res/face.png", &face_w, &face_h, &face_nch, desired_nch);
-    if (face == NULL) {
-        printf("failed to open image\n");
-        exit(1);
-    };
-    g.bind.fs_images[SLOT_texture2] = sg_alloc_image();
-    sg_init_image(g.bind.fs_images[SLOT_texture2], &(sg_image_desc){
-        .width = face_w,
-        .height = face_h,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = {
-            .ptr = face,
-            .size = (size_t)(face_w * face_h * 4),
+    g.pipe_light = sg_make_pipeline(&(sg_pipeline_desc){
+        .shader = sg_make_shader(light_shader_desc(sg_query_backend())),
+        .layout = {
+            .buffers[0].stride = 20,
+            .attrs = {
+                [ATTR_vs_light_aPos].format = SG_VERTEXFORMAT_FLOAT3,
+            }
         },
-        .label = "face-container-texture"
+        .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
+        .label = "cube-pipeline"
     });
-    stbi_image_free(face);
 
     // initial clear color
     g.pass_action = (sg_pass_action) {
@@ -189,13 +197,35 @@ static void frame(void) {
     draw_ui();
 
     sg_begin_default_pass(&g.pass_action, sapp_width(), sapp_height());
-    sg_apply_pipeline(g.pipe);
-    sg_apply_bindings(&g.bind);
 
-    for(unsigned int i = 0; i < 10; i++) {
-        g.shader.model = m4_mul(m4_new(1.0f), m4_translate(cube_positions[i]));
-        g.shader.model = m4_mul(g.shader.model, m4_rotate(angle_deg(20.0f*i), v3_new(1.0f, 0.3f, 0.5f)));
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(g.shader));
+    // Basic object w/ texture
+    {
+        sg_apply_pipeline(g.pipe_object);
+        sg_apply_bindings(&g.bind_object);
+
+        // Vertex
+        g.vs_shader.model = m4_new(1.0f);
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(g.vs_shader));
+
+        // Fragment
+        fs_basic_params_t fs_params = {.lightColor = g.light_color,};
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_basic_params, &SG_RANGE(fs_params));
+
+        sg_draw(0, 36, 1);
+    }
+
+    // Light cube
+    {
+        sg_apply_pipeline(g.pipe_light);
+        sg_apply_bindings(&g.bind_light);
+
+        // Vertex
+        // Overwrite shader model
+        mat4_t model = m4_mul(m4_new(1.0f), m4_translate(g.light_pos));
+        model = m4_mul(model, m4_scale(v3_new(0.2f, 0.2f, 0.2f)));
+        g.vs_shader.model = model;
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(g.vs_shader));
+
         sg_draw(0, 36, 1);
     }
 
@@ -209,7 +239,6 @@ static void draw_ui(void) {
     igSetNextWindowSize((ImVec2){400, 150}, ImGuiCond_Once);
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
     igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
-    igSliderFloat("Slider", &g.shader.uSlider,0.0, 1.0, "%0.2f", 0);
     igSliderFloat("Pitch", &g.cam.pitch,-89.0, 89.0, "%0.2f", 0);
     igSliderFloat("Yaw", &g.cam.yaw,-360.0, 360.0, "%0.2f", 0);
     igEnd();
@@ -256,8 +285,8 @@ static void camera_update(void) {
     };
     g.cam.front = v3_norm(direction);
 
-    g.shader.view = m4_lookat(g.cam.pos, v3_add(g.cam.pos, g.cam.front), g.cam.up);
-    g.shader.projection = m4_perspective(angle_deg(g.cam.fov), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
+    g.vs_shader.view = m4_lookat(g.cam.pos, v3_add(g.cam.pos, g.cam.front), g.cam.up);
+    g.vs_shader.projection = m4_perspective(angle_deg(g.cam.fov), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
 }
 
 static void camera_init(void) {
