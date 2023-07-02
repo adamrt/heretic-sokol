@@ -1,8 +1,8 @@
 @ctype mat4 mat4_t
 @ctype vec3 vec3_t
 
-@vs vs_basic
-uniform vs_basic_params {
+@vs vs_notex
+uniform vs_notex_params {
     mat4 model;
     mat4 view;
     mat4 projection;
@@ -23,13 +23,11 @@ void main()
     // matrix is created here, but its expensive. This should could be
     // done on the CPU and sent in as a uniform.
     Normal = mat3(transpose(inverse(model))) * aNormal;
-
-    // FragPos = vec3(model * vec4(aPos, 1.0));
 }
 @end
 
-@fs fs_basic
-uniform fs_basic_params {
+@fs fs_notex
+uniform fs_notex_params {
     vec3 lightColor;
     vec3 lightPos;
 };
@@ -81,5 +79,5 @@ void main() {
 }
 @end
 
-@program basic vs_basic fs_basic
+@program notex vs_notex fs_notex
 @program light vs_light fs_light

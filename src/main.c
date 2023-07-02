@@ -16,7 +16,7 @@
 
 #include "hmmmath.h"
 
-#include "shaders/basic.glsl.h"
+#include "shaders/standard.glsl.h"
 
 #include "heretic.h"
 #include "cube.h"
@@ -105,11 +105,11 @@ static void init(void) {
 
     // create pipeline object
     g.pipe_object = sg_make_pipeline(&(sg_pipeline_desc){
-        .shader = sg_make_shader(basic_shader_desc(sg_query_backend())),
+        .shader = sg_make_shader(notex_shader_desc(sg_query_backend())),
         .layout = {
             .attrs = {
-                [ATTR_vs_basic_aPos].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_basic_aNormal].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_notex_aPos].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_notex_aNormal].format = SG_VERTEXFORMAT_FLOAT3,
             }
         },
         .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
@@ -213,19 +213,19 @@ static void frame(void) {
 
         // Vertex
         mat4_t model = m4_mul(m4_new(1.0f), m4_rotate(angle_deg(g.rotate_amt), v3_new(0.2f, 0.5f, 0.3f)));
-        vs_basic_params_t vs_params = {
+        vs_notex_params_t vs_params = {
             .projection = g.cam.proj,
             .view = g.cam.view,
             .model = model,
         };
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_basic_params, &SG_RANGE(vs_params));
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_notex_params, &SG_RANGE(vs_params));
 
         // Fragment
-        fs_basic_params_t fs_params = {
+        fs_notex_params_t fs_params = {
             .lightColor = g.light_color,
             .lightPos   = g.light_pos,
         };
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_basic_params, &SG_RANGE(fs_params));
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_notex_params, &SG_RANGE(fs_params));
 
         sg_draw(0, 36, 1);
     }
