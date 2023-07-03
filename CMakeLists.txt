@@ -31,7 +31,7 @@ target_link_libraries(sokol PUBLIC Threads::Threads)
 target_link_libraries(sokol PUBLIC cimgui)
 target_include_directories(sokol INTERFACE lib/sokol lib )
 
-add_executable(heretic src/main.c)
+add_executable(heretic src/main.c src/mesh.c)
 target_link_libraries(heretic sokol)
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang")
