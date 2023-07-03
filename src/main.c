@@ -164,11 +164,14 @@ static void event(const sapp_event* ev) {
         sapp_quit();
     }
 
+    // Always register.
+    poll_handle_event(ev);
+
     if (simgui_handle_event(ev)) {
         return;
-    };
+    }
 
-    poll_handle_event(ev);
+    // Only register if imgui doesn't handle it.
     camera_handle_event(ev);
 }
 
