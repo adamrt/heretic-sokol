@@ -1,12 +1,16 @@
-// Sokol
+#include "camera.h"
+#include "cube.h"
+#include "heretic.h"
+#include "mesh.h"
+
 #define SOKOL_IMPL
 #define SOKOL_GLCORE33
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
 #include "sokol_glue.h"
+#include "shaders/standard.glsl.h"
 
-// ImGUI
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "cimgui.h"
 #include "sokol_imgui.h"
@@ -15,12 +19,6 @@
 #include "stb_image.h"
 
 #include "hmmmath.h"
-
-#include "shaders/standard.glsl.h"
-
-#include "mesh.h"
-#include "heretic.h"
-#include "cube.h"
 
 // Key polling setup
 #define BIT_INDEX(key) ((key) / 8)
@@ -35,9 +33,6 @@ static void frame(void);
 static void cleanup(void);
 static bool poll_keydown(sapp_keycode key);
 static bool poll_handle_event(const sapp_event *evt);
-static void camera_update(void);
-static void camera_init(void);
-static void camera_handle_event(const sapp_event* ev);
 static void draw_ui(void);
 
 static struct {
@@ -46,12 +41,7 @@ static struct {
     f32  rotate_amt;
     f32  rotate_spd;
 
-    struct {
-        vec3_t pos, front, up;
-        f32 pitch, yaw, fov;
-        mat4_t view, proj;
-    } cam;
-
+    camera_t cam;
     mesh_t mesh;
 
     vec3_t light_color;
@@ -87,7 +77,7 @@ static void init(void) {
     });
     simgui_setup(&(simgui_desc_t){ 0 });
 
-    camera_init();
+    cam_init(&g.cam, &(camera_desc_t){0});
 
     g.rotate = false;
     g.rotate_amt = 0.0f;
@@ -180,25 +170,7 @@ static void event(const sapp_event* ev) {
     }
 
     // Only register if imgui doesn't handle it.
-    camera_handle_event(ev);
-}
-
-// process_input will check keydown status to generate smooth movements.
-// see the event callback for more information.
-static void process_input(void) {
-    const f32 delta = 5.0 * sapp_frame_duration();
-    if (poll_keydown(SAPP_KEYCODE_W)) {
-        g.cam.pos = v3_add(g.cam.pos, v3_mulf(g.cam.front, delta));
-    }
-    if (poll_keydown(SAPP_KEYCODE_S)) {
-        g.cam.pos = v3_sub(g.cam.pos, v3_mulf(g.cam.front, delta));
-    }
-    if (poll_keydown(SAPP_KEYCODE_A)) {
-        g.cam.pos = v3_sub(g.cam.pos, v3_mulf(v3_norm(v3_cross(g.cam.front, g.cam.up)), delta));
-    }
-    if (poll_keydown(SAPP_KEYCODE_D)) {
-        g.cam.pos = v3_add(g.cam.pos, v3_mulf(v3_norm(v3_cross(g.cam.front, g.cam.up)), delta));
-    }
+    cam_handle_event(&g.cam, ev);
 }
 
 static void frame(void) {
@@ -214,8 +186,8 @@ static void frame(void) {
         g.rotate_amt += (f32)sapp_frame_duration() * 60.0 * g.rotate_spd;
     }
 
-    process_input();
-    camera_update();
+    cam_update(&g.cam, sapp_width(), sapp_height());
+
     draw_ui();
 
     sg_begin_default_pass(&g.pass_action, sapp_width(), sapp_height());
@@ -271,14 +243,13 @@ static void draw_ui(void) {
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){400, 150}, ImGuiCond_Once);
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
+    igCheckbox("Orthographic", &g.cam.proj_type);
     igCheckbox("Rotate", &g.rotate);
     igSliderFloat("X", &g.light_pos.X, -5.0f, 5.0f, "%0.2f", 0);
     igSliderFloat("Y", &g.light_pos.Y, -5.0f, 5.0f, "%0.2f", 0);
     igSliderFloat("Z", &g.light_pos.Z, -5.0f, 5.0f, "%0.2f", 0);
     igSliderFloat("RotateSpeed", &g.rotate_spd, 0.0f, 1.0f, "%0.2f", 0);
     igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
-    igSliderFloat("Pitch", &g.cam.pitch,-89.0, 89.0, "%0.2f", 0);
-    igSliderFloat("Yaw", &g.cam.yaw,-360.0, 360.0, "%0.2f", 0);
     igEnd();
 }
 
@@ -313,61 +284,4 @@ static bool poll_handle_event(const sapp_event* evt) {
 static void cleanup(void) {
     simgui_shutdown();
     sg_shutdown();
-}
-
-static void camera_update(void) {
-    vec3_t direction = {
-        .X = cos(angle_deg(g.cam.yaw)) * cos(angle_deg(g.cam.pitch)),
-        .Y = sin(angle_deg(g.cam.pitch)),
-        .Z = sin(angle_deg(g.cam.yaw)) * cos(angle_deg(g.cam.pitch)),
-    };
-    g.cam.front = v3_norm(direction);
-
-    g.cam.view = m4_lookat(g.cam.pos, v3_add(g.cam.pos, g.cam.front), g.cam.up);
-    g.cam.proj = m4_perspective(angle_deg(g.cam.fov), sapp_widthf() / sapp_heightf(), 0.1f, 100.0f);
-}
-
-static void camera_init(void) {
-    g.cam.pos = v3_new(0.0f, 0.0f, 3.0f);
-    g.cam.front = v3_new(0.0f, 0.0f, -1.0f);
-    g.cam.up = v3_new(0.0f, 0.1f, 0.0f);
-    g.cam.yaw = -90.0f;
-    g.cam.pitch = 0.0;
-    g.cam.fov = 45.0;
-}
-
-static void camera_handle_event(const sapp_event* ev) {
-    switch (ev->type) {
-    case SAPP_EVENTTYPE_MOUSE_DOWN:
-        if (ev->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
-            sapp_lock_mouse(true);
-        }
-        break;
-
-    case SAPP_EVENTTYPE_MOUSE_UP:
-        if (ev->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
-            sapp_lock_mouse(false);
-        }
-        break;
-
-    case SAPP_EVENTTYPE_MOUSE_MOVE:
-        if (sapp_mouse_locked()) {
-            const f32 sensitivity = 0.2f;
-            g.cam.pitch -= ev->mouse_dy * sensitivity;
-            g.cam.yaw += ev->mouse_dx * sensitivity;
-            if (g.cam.pitch > 89.0f) g.cam.pitch = 89.0f;
-            if (g.cam.pitch < -89.0f) g.cam.pitch = -89.0f;
-        }
-        break;
-
-    case SAPP_EVENTTYPE_MOUSE_SCROLL:
-        // Zooming
-        g.cam.fov -= ev->scroll_y;
-        if (g.cam.fov < 1.0f) g.cam.fov = 1.0f;
-        if (g.cam.fov > 45.0f) g.cam.fov = 45.0f;
-        break;
-
-    default:
-        break;
-    }
 }
