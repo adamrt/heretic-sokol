@@ -106,6 +106,8 @@ static void init(void) {
     // create pipeline object
     g.pipe_object = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = sg_make_shader(basic_shader_desc(sg_query_backend())),
+        .face_winding = SG_FACEWINDING_CCW,
+        .cull_mode = SG_CULLMODE_BACK,
         .layout = {
             .attrs = {
                 [ATTR_vs_basic_aPos].format = SG_VERTEXFORMAT_FLOAT3,
