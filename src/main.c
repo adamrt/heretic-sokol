@@ -18,6 +18,7 @@
 
 #include "shaders/standard.glsl.h"
 
+#include "mesh.h"
 #include "heretic.h"
 #include "cube.h"
 
@@ -50,6 +51,8 @@ static struct {
         f32 pitch, yaw, fov;
         mat4_t view, proj;
     } cam;
+
+    mesh_t mesh;
 
     vec3_t light_color;
     vec3_t light_pos;
@@ -93,8 +96,13 @@ static void init(void) {
     g.light_color = v3_new(1.0f, 1.0f, 1.0f);
     g.light_pos = v3_new(0.0f, 0.0f, 2.0f);
 
+    if (!load_obj_file_data(&g.mesh, "./res/cube.obj")) {
+        printf("failed to open obj file\n");
+        exit(1);
+    }
+
     g.bind_object.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
-        .data = SG_RANGE(cube_vertices),
+        .data = SG_RANGE(g.mesh.vertices),
         .label = "cube-vertices"
     });
 
@@ -122,24 +130,24 @@ static void init(void) {
     stbi_set_flip_vertically_on_load(true);
     int desired_nch = 4;
 
-    int wood_w, wood_h, wood_nch;
-    unsigned char *wood = stbi_load("./res/container2.png", &wood_w, &wood_h, &wood_nch, desired_nch);
-    if (wood == NULL) {
+    int cube_w, cube_h, cube_nch;
+    unsigned char *cube = stbi_load("./res/cube.png", &cube_w, &cube_h, &cube_nch, desired_nch);
+    if (cube == NULL) {
         printf("failed to open image\n");
         exit(1);
     };
     g.bind_object.fs_images[SLOT_texture1] = sg_alloc_image();
     sg_init_image(g.bind_object.fs_images[SLOT_texture1], &(sg_image_desc){
-        .width = wood_w,
-        .height = wood_h,
+        .width = cube_w,
+        .height = cube_h,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
         .data.subimage[0][0] = {
-            .ptr = wood,
-            .size = (size_t)(wood_w * wood_h * 4),
+            .ptr = cube,
+            .size = (size_t)(cube_w * cube_h * 4),
         },
-        .label = "wood-container-texture"
+        .label = "cube-texture"
     });
-    stbi_image_free(wood);
+    stbi_image_free(cube);
 
     g.pipe_light = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = sg_make_shader(light_shader_desc(sg_query_backend())),
@@ -150,7 +158,7 @@ static void init(void) {
             }
         },
         .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
-        .label = "cube-pipeline"
+        .label = "light-pipeline"
     });
 
     // initial clear color
@@ -218,7 +226,7 @@ static void frame(void) {
         sg_apply_bindings(&g.bind_object);
 
         // Vertex
-        mat4_t model = m4_mul(m4_new(1.0f), m4_rotate(angle_deg(g.rotate_amt), v3_new(0.0f, 1.f, 0.0f)));
+        mat4_t model = m4_mul(m4_new(1.0f), m4_rotate(angle_deg(g.rotate_amt), v3_new(0.5f, 0.2f, 0.3f)));
         vs_notex_params_t vs_params = {
             .projection = g.cam.proj,
             .view = g.cam.view,
@@ -233,7 +241,7 @@ static void frame(void) {
         };
         sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_notex_params, &SG_RANGE(fs_params));
 
-        sg_draw(0, 36, 1);
+        sg_draw(0, g.mesh.num_vertices, 1);
     }
 
     // Light cube
