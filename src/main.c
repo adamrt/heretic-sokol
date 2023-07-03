@@ -40,6 +40,7 @@ static struct {
     bool rotate;
     f32  rotate_amt;
     f32  rotate_spd;
+    int draw_mode;
 
     camera_t cam;
     mesh_t mesh;
@@ -83,6 +84,7 @@ static void init(void) {
     g.rotate_amt = 0.0f;
     g.rotate_spd = 0.5f;
 
+    g.draw_mode = 0;
     g.light_color = v3_new(1.0f, 1.0f, 1.0f);
     g.light_pos = v3_new(0.0f, 0.0f, 2.0f);
 
@@ -199,19 +201,20 @@ static void frame(void) {
 
         // Vertex
         mat4_t model = m4_mul(m4_new(1.0f), m4_rotate(angle_deg(g.rotate_amt), v3_new(0.5f, 0.2f, 0.3f)));
-        vs_notex_params_t vs_params = {
+        vs_basic_params_t vs_params = {
             .projection = g.cam.proj,
             .view = g.cam.view,
             .model = model,
         };
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_notex_params, &SG_RANGE(vs_params));
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_basic_params, &SG_RANGE(vs_params));
 
         // Fragment
-        fs_notex_params_t fs_params = {
+        fs_basic_params_t fs_params = {
+            .draw_mode = g.draw_mode,
             .lightColor = g.light_color,
             .lightPos   = g.light_pos,
         };
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_notex_params, &SG_RANGE(fs_params));
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_basic_params, &SG_RANGE(fs_params));
 
         sg_draw(0, g.mesh.num_vertices, 1);
     }
@@ -248,6 +251,9 @@ static void draw_ui(void) {
     igSliderFloat("X", &g.light_pos.X, -5.0f, 5.0f, "%0.2f", 0);
     igSliderFloat("Y", &g.light_pos.Y, -5.0f, 5.0f, "%0.2f", 0);
     igSliderFloat("Z", &g.light_pos.Z, -5.0f, 5.0f, "%0.2f", 0);
+    igRadioButton_IntPtr("Textured", &g.draw_mode, 0);
+    igRadioButton_IntPtr("Normals", &g.draw_mode, 1);
+    igRadioButton_IntPtr("color", &g.draw_mode, 2);
     igSliderFloat("RotateSpeed", &g.rotate_spd, 0.0f, 1.0f, "%0.2f", 0);
     igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
     igEnd();
