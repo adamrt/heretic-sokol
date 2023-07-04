@@ -21,6 +21,8 @@
 typedef struct {
     float distance;
     float fov;
+    float latitude;
+    float longitude;
 } camera_desc_t;
 
 enum {
@@ -53,12 +55,12 @@ static void cam_init(camera_t* cam, const camera_desc_t* desc) {
     assert(cam && desc);
     memset(cam, 0, sizeof(camera_t));
     cam->distance = _cam_def(desc->distance, CAMERA_DEFAULT_DIST);
-    cam->proj_type = Perspective;
+    cam->proj_type = Orthographic;
 
-    cam->latitude = 30.0f;
-    cam->longitude= 30.0f;
+    cam->latitude= _cam_def(desc->latitude, 30.0f);
+    cam->longitude= _cam_def(desc->longitude, 30.0f);
     cam->fov = _cam_def(desc->fov, CAMERA_DEFAULT_FOV);
-    cam->zoom = 1.0f;
+    cam->zoom = 10.0f;
 }
 
 /* feed mouse movement */

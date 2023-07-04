@@ -76,7 +76,11 @@ static void init(void) {
     });
     simgui_setup(&(simgui_desc_t){ 0 });
 
-    cam_init(&g.cam, &(camera_desc_t){0});
+    cam_init(&g.cam, &(camera_desc_t){
+        .latitude = 37.0f,
+        .longitude = 210.0f,
+        .distance = 10.0,
+    });
 
     g.rotate = false;
     g.rotate_amt = 0.0f;
