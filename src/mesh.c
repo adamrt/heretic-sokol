@@ -12,7 +12,7 @@ bool load_obj_file_data(mesh_t* mesh, char* filename)
 
     vec3_t temp_vertices[MAX_VERTS];
     vec3_t temp_normals[MAX_VERTS];
-    vec2_t temp_uvs[MAX_VERTS];
+    vec3_t temp_uvs[MAX_VERTS];
     u32 temp_num_vertices;
     u32 temp_num_normals;
     u32 temp_num_uvs;
@@ -32,8 +32,8 @@ bool load_obj_file_data(mesh_t* mesh, char* filename)
         }
         // Texture coordinate information
         if (strncmp(line, "vt ", 3) == 0) {
-            vec2_t uv;
-            sscanf(line, "vt %f %f", &uv.U, &uv.V);
+            vec3_t uv = {0}; // extra space for fft
+            sscanf(line, "vt %f %f", &uv.X, &uv.Y);
             temp_uvs[temp_num_uvs++] = uv;
         }
         // Face information
@@ -53,7 +53,7 @@ bool load_obj_file_data(mesh_t* mesh, char* filename)
 
             for (i32 i = 0; i < 3; i++) {
                 vec3_t v = temp_vertices[vertex_indices[i]-1];
-                vec2_t t = temp_uvs[uv_indices[i]-1];
+                vec3_t t = temp_uvs[uv_indices[i]-1];
                 vec3_t n = temp_normals[normal_indices[i]-1];
                 mesh->vertices[mesh->num_vertices] = (vertex_t){v, n, t};;
                 mesh->num_vertices++;

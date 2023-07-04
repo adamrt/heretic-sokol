@@ -114,7 +114,7 @@ static void init(void) {
             .attrs = {
                 [ATTR_vs_basic_aPos].format = SG_VERTEXFORMAT_FLOAT3,
                 [ATTR_vs_basic_aNormal].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_basic_aTexCoords].format = SG_VERTEXFORMAT_FLOAT2,
+                [ATTR_vs_basic_aTexCoords].format = SG_VERTEXFORMAT_FLOAT3,
             }
         },
         .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
@@ -146,7 +146,7 @@ static void init(void) {
     g.pipe_light = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = sg_make_shader(light_shader_desc(sg_query_backend())),
         .layout = {
-            .buffers[0].stride = 32,
+            .buffers[0].stride = 36,
             .attrs = {
                 [ATTR_vs_light_aPos].format = SG_VERTEXFORMAT_FLOAT3,
             }

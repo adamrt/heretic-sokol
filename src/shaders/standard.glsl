@@ -11,10 +11,10 @@ uniform vs_basic_params {
 
 in vec3 aPos;
 in vec3 aNormal;
-in vec2 aTexCoords;
+in vec3 aTexCoords;
 
 out vec3 Normal;
-out vec2 UV;
+out vec3 UV;
 out vec3 FragPos;
 
 void main()
@@ -42,7 +42,7 @@ uniform sampler2D texture1;
 out vec4 FragColor;
 
 in vec3 Normal;
-in vec2 UV;
+in vec3 UV;
 in vec3 FragPos;
 
 void main()
