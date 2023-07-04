@@ -64,8 +64,6 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .frame_cb = frame,
         .cleanup_cb = cleanup,
         .window_title = "Heretic",
-        .width = 1280,
-        .height = 960,
         .icon.sokol_default = true,
         .logger.func = slog_func,
     };
