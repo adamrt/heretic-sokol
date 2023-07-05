@@ -322,16 +322,6 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
         mesh->vertices[i+5].texcoords = c;
     }
 
-    for (int i = 0; i < mesh->num_vertices; i++) {
-        vec3_t p = mesh->vertices[i].position;
-        vec3_t n = mesh->vertices[i].normal;
-
-        if (n.X + n.Y + n.Z != 0.0) {
-            printf("V#%d: %f %f %f\n", i, p.X, p.Y, p.Z);
-            printf("N#%d: %f %f %f\n", i, n.X, n.Y, n.Z);
-        }
-    }
-
     read_palette(f, sector, mesh);
 
     mesh->center = coord_center(mesh);
@@ -339,7 +329,6 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
     mesh->is_mesh_valid = true;
     return;
 }
-
 
 
 vec3_t coord_center(mesh_t *mesh) {
@@ -498,7 +487,7 @@ i32 read_i32(FILE *f)
 
 f32 read_f1x3x12(FILE *f)
 {
-    u16 value = read_i16(f);
+    i16 value = read_i16(f);
     return (f32)value / 4096.0;
 }
 
@@ -519,7 +508,7 @@ vec3_t read_normal(FILE *f)
     f32 y = read_f1x3x12(f);
     f32 z = read_f1x3x12(f);
 
-    /* y = -y; */
+    y = -y;
 
     return (vec3_t){ x, y, z };
 }
