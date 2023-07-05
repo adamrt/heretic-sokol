@@ -258,19 +258,28 @@ static void frame(void) {
 
 static void draw_ui(void) {
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
-    igSetNextWindowSize((ImVec2){400, 150}, ImGuiCond_Once);
+    igSetNextWindowSize((ImVec2){400, 400}, ImGuiCond_Once);
+
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
-    igCheckbox("Orthographic", &g.cam.proj_type);
-    igCheckbox("Rotate", &g.rotate);
-    igRadioButton_IntPtr("Textured", &g.draw_mode, 0);
-    igRadioButton_IntPtr("Normals", &g.draw_mode, 1);
+    igText("");
+    igText("Scene");
+    igColorEdit3("Ambient Light", &g.ambient_color, ImGuiColorEditFlags_None);
+    igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
+    igText("");
+    igText("Model");
+    igRadioButton_IntPtr("Textured", &g.draw_mode, 0); igSameLine(100, 10);
+    igRadioButton_IntPtr("Normals", &g.draw_mode, 1);igSameLine(200, 10);
     igRadioButton_IntPtr("Color", &g.draw_mode, 2);
+    igCheckbox("Rotate", &g.rotate);
+    igText("");
+    igText("Light");
+    igSliderFloat3("Position", &g.light_pos, -5.0f, 5.0f, "%0.2f", 0);
+    igColorEdit3("Color", &g.light_color, ImGuiColorEditFlags_None);
+    igText("");
+    igText("Camera");
+    igCheckbox("Orthographic", &g.cam.proj_type);
     igSliderFloat("Lat", &g.cam.latitude, -85.0f, 85.0f, "%0.2f", 0);
     igSliderFloat("Long", &g.cam.longitude, 0.0f, 360.0f, "%0.2f", 0);
-    igSliderFloat("LightX", &g.light_pos.X, -5.0f, 5.0f, "%0.2f", 0);
-    igSliderFloat("LightY", &g.light_pos.Y, -5.0f, 5.0f, "%0.2f", 0);
-    igSliderFloat("LightZ", &g.light_pos.Z, -5.0f, 5.0f, "%0.2f", 0);
-    igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
     igEnd();
 }
 
