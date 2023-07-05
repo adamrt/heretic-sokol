@@ -38,6 +38,7 @@ uniform fs_basic_params {
 
 };
 uniform sampler2D texture1;
+uniform sampler2D palette1;
 
 out vec4 FragColor;
 
@@ -59,8 +60,12 @@ void main()
 
     // Texture
     if (draw_mode == 0) {
-        vec4 tex = texture(texture1, UV);
-        FragColor = vec4(ambient + diffuse, 1.0) * tex;
+        vec4 tex_color = texture(texture1, vec2(UV.xy)) * 255.0;
+        uint palette_pos = uint(UV.z) * 16u + uint(tex_color.r);
+        vec4 color = texture(palette1, vec2(float(palette_pos) / 255.0, 0.0));
+        if (color.a < 0.5)
+            discard;
+        FragColor = vec4(ambient + diffuse, 1.0) * color;
     } else if (draw_mode == 1) {
         vec4 color = vec4(Normal, 1.0);
         FragColor = vec4(ambient + diffuse, 1.0) * color;

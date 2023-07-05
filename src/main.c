@@ -79,7 +79,7 @@ static void init(void) {
     cam_init(&g.cam, &(camera_desc_t){
         .latitude = 37.0f,
         .longitude = 210.0f,
-        .distance = 10.0,
+        .distance = 5.0,
     });
 
     g.rotate = false;
@@ -88,10 +88,11 @@ static void init(void) {
 
     g.draw_mode = 0;
     g.light_color = v3_new(1.0f, 1.0f, 1.0f);
-    g.light_pos = v3_new(0.0f, 0.0f, 2.0f);
+    g.light_pos = v3_new(0.0f, 2.5f, 0.0f);
 
-    if (!load_obj_file_data(&g.mesh, "./res/cube.obj")) {
-        printf("failed to open obj file\n");
+
+    if (!mesh_from_map(&g.mesh)) {
+        printf("failed to open map file\n");
         exit(1);
     }
 
@@ -121,27 +122,29 @@ static void init(void) {
         .label = "cube-pipeline"
     });
 
-    stbi_set_flip_vertically_on_load(true);
-    int desired_nch = 4;
-
-    int cube_w, cube_h, cube_nch;
-    unsigned char *cube = stbi_load("./res/cube.png", &cube_w, &cube_h, &cube_nch, desired_nch);
-    if (cube == NULL) {
-        printf("failed to open image\n");
-        exit(1);
-    };
     g.bind_object.fs_images[SLOT_texture1] = sg_alloc_image();
     sg_init_image(g.bind_object.fs_images[SLOT_texture1], &(sg_image_desc){
-        .width = cube_w,
-        .height = cube_h,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .width = TEXTURE_WIDTH,
+        .height = TEXTURE_HEIGHT,
         .data.subimage[0][0] = {
-            .ptr = cube,
-            .size = (size_t)(cube_w * cube_h * 4),
+            .ptr = g.mesh.texture,
+            .size = (size_t)(TEXTURE_NUM_BYTES),
         },
         .label = "cube-texture"
     });
-    stbi_image_free(cube);
+
+    g.bind_object.fs_images[SLOT_palette1] = sg_alloc_image();
+    sg_init_image(g.bind_object.fs_images[SLOT_palette1], &(sg_image_desc){
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .width = 16 * 16,
+        .height = 1,
+        .data.subimage[0][0] = {
+            .ptr = g.mesh.palette,
+            .size = (size_t)(PALETTE_NUM_BYTES),
+        },
+        .label = "palette-texture"
+    });
 
     g.pipe_light = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = sg_make_shader(light_shader_desc(sg_query_backend())),
@@ -202,7 +205,15 @@ static void frame(void) {
         sg_apply_bindings(&g.bind_object);
 
         // Vertex
-        mat4_t model = m4_mul(m4_new(1.0f), m4_rotate(angle_deg(g.rotate_amt), v3_new(0.5f, 0.2f, 0.3f)));
+
+        //
+        //            group.scale.z = -1;
+        //
+
+        mat4_t model = m4_new(1.0f);
+        // model = m4_mul(model, m4_rotate(angle_deg(g.rotate_amt), v3_new(0.0f, 1.0f, 0.0f)));
+        // model = m4_mul(model, m4_translate(g.center));
+        model = m4_mul(model, m4_scale(v3_new(0.02f, 0.02f, 0.02f)));
         vs_basic_params_t vs_params = {
             .projection = g.cam.proj,
             .view = g.cam.view,
@@ -250,13 +261,15 @@ static void draw_ui(void) {
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
     igCheckbox("Orthographic", &g.cam.proj_type);
     igCheckbox("Rotate", &g.rotate);
-    igSliderFloat("X", &g.light_pos.X, -5.0f, 5.0f, "%0.2f", 0);
-    igSliderFloat("Y", &g.light_pos.Y, -5.0f, 5.0f, "%0.2f", 0);
-    igSliderFloat("Z", &g.light_pos.Z, -5.0f, 5.0f, "%0.2f", 0);
+    igSliderFloat("RotateSpeed", &g.rotate_spd, 0.0f, 1.0f, "%0.2f", 0);
     igRadioButton_IntPtr("Textured", &g.draw_mode, 0);
     igRadioButton_IntPtr("Normals", &g.draw_mode, 1);
-    igRadioButton_IntPtr("color", &g.draw_mode, 2);
-    igSliderFloat("RotateSpeed", &g.rotate_spd, 0.0f, 1.0f, "%0.2f", 0);
+    igRadioButton_IntPtr("Color", &g.draw_mode, 2);
+    igSliderFloat("Lat", &g.cam.latitude, -85.0f, 85.0f, "%0.2f", 0);
+    igSliderFloat("Long", &g.cam.longitude, 0.0f, 360.0f, "%0.2f", 0);
+    igSliderFloat("LightX", &g.light_pos.X, -5.0f, 5.0f, "%0.2f", 0);
+    igSliderFloat("LightY", &g.light_pos.Y, -5.0f, 5.0f, "%0.2f", 0);
+    igSliderFloat("LightZ", &g.light_pos.Z, -5.0f, 5.0f, "%0.2f", 0);
     igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
     igEnd();
 }
