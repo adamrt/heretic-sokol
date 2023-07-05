@@ -39,7 +39,6 @@ static struct {
     f32 time;
     bool rotate;
     f32  rotate_amt;
-    f32  rotate_spd;
     int draw_mode;
 
     camera_t cam;
@@ -84,7 +83,6 @@ static void init(void) {
 
     g.rotate = false;
     g.rotate_amt = 0.0f;
-    g.rotate_spd = 0.5f;
 
     g.draw_mode = 0;
     g.light_color = v3_new(1.0f, 1.0f, 1.0f);
@@ -190,7 +188,7 @@ static void frame(void) {
 
     g.time += (f32)sapp_frame_duration();
     if (g.rotate) {
-        g.rotate_amt += (f32)sapp_frame_duration() * 60.0 * g.rotate_spd;
+        g.rotate_amt += (f32)sapp_frame_duration() * 60.0;
     }
 
     cam_update(&g.cam, sapp_width(), sapp_height());
@@ -205,11 +203,6 @@ static void frame(void) {
         sg_apply_bindings(&g.bind_object);
 
         // Vertex
-
-        //
-        //            group.scale.z = -1;
-        //
-
         mat4_t model = m4_new(1.0f);
         // model = m4_mul(model, m4_rotate(angle_deg(g.rotate_amt), v3_new(0.0f, 1.0f, 0.0f)));
         // model = m4_mul(model, m4_translate(g.center));
@@ -261,7 +254,6 @@ static void draw_ui(void) {
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
     igCheckbox("Orthographic", &g.cam.proj_type);
     igCheckbox("Rotate", &g.rotate);
-    igSliderFloat("RotateSpeed", &g.rotate_spd, 0.0f, 1.0f, "%0.2f", 0);
     igRadioButton_IntPtr("Textured", &g.draw_mode, 0);
     igRadioButton_IntPtr("Normals", &g.draw_mode, 1);
     igRadioButton_IntPtr("Color", &g.draw_mode, 2);
