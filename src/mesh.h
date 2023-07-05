@@ -46,11 +46,21 @@ typedef struct {
 } gns_t;
 
 typedef struct {
+    vec3_t position;
+    vec3_t color;
+} light_t;
+
+typedef struct {
     vertex_t vertices[MAX_VERTS];
     u32 num_vertices;
 
     u8 texture[TEXTURE_NUM_BYTES];
     u8 palette[PALETTE_NUM_BYTES];
+
+    light_t dir_lights[3];
+    vec3_t ambient_light;
+    vec3_t background_top;
+    vec3_t background_bottom;
 
     vec3_t center;
 
@@ -65,6 +75,8 @@ void read_gns(FILE* f, int sector, gns_t *gns);
 void read_mesh(FILE *f, int sector, mesh_t *mesh);
 void read_texture(FILE *f, int sector, mesh_t *mesh);
 void read_palette(FILE *f, int sector, mesh_t *mesh);
+void read_lights(FILE *f, int sector, mesh_t *mesh);
+vec4_t read_rgb15(FILE *f);
 
 vec3_t coord_center(mesh_t *mesh);
 

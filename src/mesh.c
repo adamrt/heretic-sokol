@@ -323,6 +323,7 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
     }
 
     read_palette(f, sector, mesh);
+    read_lights(f, sector, mesh);
 
     mesh->center = coord_center(mesh);
 
@@ -371,16 +372,52 @@ void read_palette(FILE *f, int sector, mesh_t *mesh) {
     fseek(f, intra_file_ptr, SEEK_CUR);
 
     for (int i = 0; i < 16 * 16 * 4; i = i + 4) {
+        vec4_t c = read_rgb15(f);
+        mesh->palette[i+0] = c.R;
+        mesh->palette[i+1] = c.G;
+        mesh->palette[i+2] = c.B;
+        mesh->palette[i+3] = c.A;
+    }
+};
+
+vec4_t read_rgb15(FILE *f) {
         u16 val = read_u16(f);
         u8 a = val == 0 ? 0x00 : 0xFF;
         u8 b = (val & 0b0111110000000000) >> 7;
         u8 g = (val & 0b0000001111100000) >> 2;
         u8 r = (val & 0b0000000000011111) << 3;
-        mesh->palette[i+0] = r;
-        mesh->palette[i+1] = g;
-        mesh->palette[i+2] = b;
-        mesh->palette[i+3] = a;
-    }
+        return (vec4_t){r,g,b,a};
+}
+
+void read_lights(FILE *f, int sector, mesh_t *mesh) {
+    // Seek to beginning of file
+    fseek(f, sector * SECTOR_LEN, SEEK_SET);
+    // Seek to header pointer
+    fseek(f, 0x64, SEEK_CUR);
+
+    // Read palette header pointer
+    u32 intra_file_ptr = read_u32(f);
+
+    // Seek to intra file palette location
+    fseek(f, sector * SECTOR_LEN, SEEK_SET);
+    fseek(f, intra_file_ptr, SEEK_CUR);
+
+    mesh->dir_lights[0].color.R = read_f1x3x12(f);
+    mesh->dir_lights[1].color.R = read_f1x3x12(f);
+    mesh->dir_lights[2].color.R = read_f1x3x12(f);
+    mesh->dir_lights[0].color.G = read_f1x3x12(f);
+    mesh->dir_lights[1].color.G = read_f1x3x12(f);
+    mesh->dir_lights[2].color.G = read_f1x3x12(f);
+    mesh->dir_lights[0].color.B = read_f1x3x12(f);
+    mesh->dir_lights[1].color.B = read_f1x3x12(f);
+    mesh->dir_lights[2].color.B = read_f1x3x12(f);
+
+    mesh->dir_lights[0].position = read_position(f);
+    mesh->dir_lights[1].position = read_position(f);
+    mesh->dir_lights[2].position = read_position(f);
+
+    vec4_t c = read_rgb15(f);
+    mesh->ambient_light = (vec3_t){c.R, c.G, c.B};
 };
 
 void read_texture(FILE *f, int sector, mesh_t *mesh) {
