@@ -44,6 +44,7 @@ static struct {
     camera_t cam;
     mesh_t mesh;
 
+    vec3_t ambient_color;
     vec3_t light_color;
     vec3_t light_pos;
 
@@ -85,6 +86,7 @@ static void init(void) {
     g.rotate_amt = 0.0f;
 
     g.draw_mode = 0;
+    g.ambient_color = v3_new(1.0f, 1.0f, 1.0f);
     g.light_color = v3_new(1.0f, 1.0f, 1.0f);
     g.light_pos = v3_new(0.0f, 2.5f, 0.0f);
 
@@ -217,6 +219,7 @@ static void frame(void) {
         // Fragment
         fs_basic_params_t fs_params = {
             .u_draw_mode = g.draw_mode,
+            .u_ambient_color = g.ambient_color,
             .u_light_color = g.light_color,
             .u_light_pos   = g.light_pos,
         };
@@ -239,6 +242,11 @@ static void frame(void) {
             .model = model,
         };
         sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_light_params, &SG_RANGE(vs_params));
+
+        fs_light_params_t fs_params = {
+            .u_light_color = g.light_color,
+        };
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_light_params, &SG_RANGE(fs_params));
 
         sg_draw(0, 36, 1);
     }

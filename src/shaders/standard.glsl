@@ -28,6 +28,7 @@ void main()
 @fs fs_basic
 uniform fs_basic_params {
     int  u_draw_mode;
+    vec3 u_ambient_color;
     vec3 u_light_color;
     vec3 u_light_pos;
 };
@@ -45,7 +46,7 @@ void main()
 {
     // Ambient Light
     float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * u_light_color;
+    vec3 ambient = ambientStrength * u_ambient_color;
 
     // Diffuse Light
     vec3 norm = normalize(v_normal);
@@ -87,10 +88,14 @@ void main()
 @end
 
 @fs fs_light
+uniform fs_light_params {
+    vec3 u_light_color;
+};
+
 out vec4 FragColor;
 
 void main() {
-    FragColor = vec4(1.0);      // set all 4 vector values to 1.0
+    FragColor = vec4(u_light_color, 1.0);
 }
 @end
 
