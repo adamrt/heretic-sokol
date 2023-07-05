@@ -1,4 +1,5 @@
 @ctype mat4 mat4_t
+@ctype vec4 vec4_t
 @ctype vec3 vec3_t
 
 @vs vs_basic
@@ -26,11 +27,15 @@ void main()
 @end
 
 @fs fs_basic
+
+uniform fs_dir_lights {
+    vec4 position[3];
+    vec4 color[3];
+} dir_lights;
+
 uniform fs_basic_params {
     int  u_draw_mode;
     vec3 u_ambient_color;
-    vec3 u_light_color;
-    vec3 u_light_pos;
 };
 
 uniform sampler2D u_tex;
@@ -48,11 +53,16 @@ void main()
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * u_ambient_color;
 
-    // Diffuse Light
     vec3 norm = normalize(v_normal);
-    vec3 lightDir = normalize(u_light_pos - v_pos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * u_light_color;
+
+    vec3 diffuse_light_sum = vec3(0.0);
+    for (int i = 0; i < 3; i++) {
+        vec3 direction = normalize(dir_lights.position[i].xyz - v_pos.xyz);
+        float intensity = max(dot(norm, direction), 0.0);
+        diffuse_light_sum += dir_lights.color[i].xyz * intensity;
+    }
+    vec4 light = vec4((ambient + diffuse_light_sum) * 2.0, 1.0);
+
 
     // Texture
     if (u_draw_mode == 0) {
@@ -61,13 +71,12 @@ void main()
         vec4 color = texture(u_palette, vec2(float(palette_pos) / 255.0, 0.0));
         if (color.a < 0.5)
             discard;
-        frag_color = vec4(ambient + diffuse, 1.0) * color;
+        frag_color = light * color;
     } else if (u_draw_mode == 1) {
-        vec4 color = vec4(v_normal, 1.0);
-        frag_color = vec4(ambient + diffuse, 1.0) * color;
+        frag_color = vec4(v_normal, 1.0);
     } else {
         vec4 color = vec4(0.6, 0.2, 0.0, 1.0);
-        frag_color = vec4(ambient + diffuse, 1.0) * color;
+        frag_color = light * color;
     }
 }
 @end

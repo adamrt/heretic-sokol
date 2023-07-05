@@ -45,8 +45,6 @@ static struct {
     mesh_t mesh;
 
     vec3_t ambient_color;
-    vec3_t light_color;
-    vec3_t light_pos;
 
     sg_pipeline pipe_object;
     sg_pipeline pipe_light;
@@ -87,8 +85,6 @@ static void init(void) {
 
     g.draw_mode = 0;
     g.ambient_color = v3_new(1.0f, 1.0f, 1.0f);
-    g.light_color = v3_new(1.0f, 1.0f, 1.0f);
-    g.light_pos = v3_new(0.0f, 2.5f, 0.0f);
 
 
     if (!mesh_from_map(&g.mesh)) {
@@ -220,10 +216,17 @@ static void frame(void) {
         fs_basic_params_t fs_params = {
             .u_draw_mode = g.draw_mode,
             .u_ambient_color = g.ambient_color,
-            .u_light_color = g.light_color,
-            .u_light_pos   = g.light_pos,
         };
         sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_basic_params, &SG_RANGE(fs_params));
+
+        fs_dir_lights_t fs_lights = {0};
+        for (int i = 0; i < 3; i++) {
+            vec3_t c = g.mesh.dir_lights[i].color;
+            vec3_t p = g.mesh.dir_lights[i].position;
+            fs_lights.color[i] = (vec4_t){c.R, c.G, c.B, 255.0};
+            fs_lights.position[i] = (vec4_t){p.X, p.Y, p.Z, 255.0};
+        }
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_dir_lights, &SG_RANGE(fs_lights));
 
         sg_draw(0, g.mesh.num_vertices, 1);
     }
@@ -233,22 +236,25 @@ static void frame(void) {
         sg_apply_pipeline(g.pipe_light);
         sg_apply_bindings(&g.bind_light);
 
-        // Vertex
-        mat4_t model = m4_mul(m4_new(1.0f), m4_translate(g.light_pos));
-        model = m4_mul(model, m4_scale(v3_new(0.2f, 0.2f, 0.2f)));
         vs_light_params_t vs_params = {
             .projection = g.cam.proj,
             .view = g.cam.view,
-            .model = model,
         };
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_light_params, &SG_RANGE(vs_params));
 
-        fs_light_params_t fs_params = {
-            .u_light_color = g.light_color,
-        };
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_light_params, &SG_RANGE(fs_params));
+        // Vertex
+        for (int i = 0; i < 3; i++) {
+            mat4_t model = m4_new(1.0f);
+            model = m4_mul(model, m4_translate(g.mesh.dir_lights[i].position));
+            model = m4_mul(model, m4_scale(v3_new(0.2f, 0.2f, 0.2f)));
+            vs_params.model = model;
+            sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_light_params, &SG_RANGE(vs_params));
 
-        sg_draw(0, 36, 1);
+            fs_light_params_t fs_params = {.u_light_color = g.mesh.dir_lights[i].color,};
+            sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_light_params, &SG_RANGE(fs_params));
+
+            sg_draw(0, 36, 1);
+        }
+
     }
 
     simgui_render();
@@ -258,28 +264,44 @@ static void frame(void) {
 
 static void draw_ui(void) {
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
-    igSetNextWindowSize((ImVec2){400, 400}, ImGuiCond_Once);
-
+    igSetNextWindowSize((ImVec2){480, 550}, ImGuiCond_Once);
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
     igText("");
-    igText("Scene");
-    igColorEdit3("Ambient Light", &g.ambient_color, ImGuiColorEditFlags_None);
-    igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
-    igText("");
-    igText("Model");
-    igRadioButton_IntPtr("Textured", &g.draw_mode, 0); igSameLine(100, 10);
-    igRadioButton_IntPtr("Normals", &g.draw_mode, 1);igSameLine(200, 10);
-    igRadioButton_IntPtr("Color", &g.draw_mode, 2);
-    igCheckbox("Rotate", &g.rotate);
-    igText("");
-    igText("Light");
-    igSliderFloat3("Position", &g.light_pos, -5.0f, 5.0f, "%0.2f", 0);
-    igColorEdit3("Color", &g.light_color, ImGuiColorEditFlags_None);
-    igText("");
-    igText("Camera");
-    igCheckbox("Orthographic", &g.cam.proj_type);
-    igSliderFloat("Lat", &g.cam.latitude, -85.0f, 85.0f, "%0.2f", 0);
-    igSliderFloat("Long", &g.cam.longitude, 0.0f, 360.0f, "%0.2f", 0);
+
+    if (!igCollapsingHeader_TreeNodeFlags("Scene", 0)) {
+        igColorEdit3("Ambient Light", &g.ambient_color, ImGuiColorEditFlags_None);
+        igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
+        igText("");
+
+    }
+
+    if (!igCollapsingHeader_TreeNodeFlags("Model", 0)) {
+        igRadioButton_IntPtr("Textured", &g.draw_mode, 0); igSameLine(100, 10);
+        igRadioButton_IntPtr("Normals", &g.draw_mode, 1);igSameLine(200, 10);
+        igRadioButton_IntPtr("Color", &g.draw_mode, 2);
+        igCheckbox("Rotate", &g.rotate);
+        igText("");
+
+    }
+
+    if (!igCollapsingHeader_TreeNodeFlags("Lights", 0)) {
+        for (int i = 0; i < 3; i++) {
+            igPushID_Int(i);
+            char title[10];
+            sprintf(title, "Light %d", i);
+            igSeparatorText(title);
+            igSliderFloat3("Position", &g.mesh.dir_lights[i].position, -5000.0f, 5000.0f, "%0.2f", 0);
+            igColorEdit3("Color", &g.mesh.dir_lights[i].color, ImGuiColorEditFlags_None);
+            igPopID();
+        }
+        igText("");
+    }
+
+    if (!igCollapsingHeader_TreeNodeFlags("Camera", 0)) {
+        igCheckbox("Orthographic", &g.cam.proj_type);
+        igSliderFloat("Lat", &g.cam.latitude, -85.0f, 85.0f, "%0.2f", 0);
+        igSliderFloat("Long", &g.cam.longitude, 0.0f, 360.0f, "%0.2f", 0);
+    }
     igEnd();
 }
 
