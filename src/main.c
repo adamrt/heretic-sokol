@@ -113,17 +113,17 @@ static void init(void) {
         .cull_mode = SG_CULLMODE_BACK,
         .layout = {
             .attrs = {
-                [ATTR_vs_basic_aPos].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_basic_aNormal].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_basic_aTexCoords].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_basic_a_pos].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_basic_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_basic_a_uv].format = SG_VERTEXFORMAT_FLOAT3,
             }
         },
         .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
         .label = "cube-pipeline"
     });
 
-    g.bind_object.fs_images[SLOT_texture1] = sg_alloc_image();
-    sg_init_image(g.bind_object.fs_images[SLOT_texture1], &(sg_image_desc){
+    g.bind_object.fs_images[SLOT_u_tex] = sg_alloc_image();
+    sg_init_image(g.bind_object.fs_images[SLOT_u_tex], &(sg_image_desc){
         .pixel_format = SG_PIXELFORMAT_RGBA8,
         .width = TEXTURE_WIDTH,
         .height = TEXTURE_HEIGHT,
@@ -134,8 +134,8 @@ static void init(void) {
         .label = "cube-texture"
     });
 
-    g.bind_object.fs_images[SLOT_palette1] = sg_alloc_image();
-    sg_init_image(g.bind_object.fs_images[SLOT_palette1], &(sg_image_desc){
+    g.bind_object.fs_images[SLOT_u_palette] = sg_alloc_image();
+    sg_init_image(g.bind_object.fs_images[SLOT_u_palette], &(sg_image_desc){
         .pixel_format = SG_PIXELFORMAT_RGBA8,
         .width = 16 * 16,
         .height = 1,
@@ -215,17 +215,17 @@ static void frame(void) {
         // model = m4_mul(model, m4_translate(g.center));
         model = m4_mul(model, m4_scale(v3_new(0.02f, 0.02f, 0.02f)));
         vs_basic_params_t vs_params = {
-            .projection = g.cam.proj,
-            .view = g.cam.view,
-            .model = model,
+            .u_projection = g.cam.proj,
+            .u_view = g.cam.view,
+            .u_model = model,
         };
         sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_basic_params, &SG_RANGE(vs_params));
 
         // Fragment
         fs_basic_params_t fs_params = {
-            .draw_mode = g.draw_mode,
-            .lightColor = g.light_color,
-            .lightPos   = g.light_pos,
+            .u_draw_mode = g.draw_mode,
+            .u_light_color = g.light_color,
+            .u_light_pos   = g.light_pos,
         };
         sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_basic_params, &SG_RANGE(fs_params));
 

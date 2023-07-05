@@ -3,75 +3,70 @@
 
 @vs vs_basic
 uniform vs_basic_params {
-    float draw_mode;
-    mat4 model;
-    mat4 view;
-    mat4 projection;
+    mat4 u_model;
+    mat4 u_view;
+    mat4 u_projection;
 };
 
-in vec3 aPos;
-in vec3 aNormal;
-in vec3 aTexCoords;
+in vec3 a_pos;
+in vec3 a_normal;
+in vec3 a_uv;
 
-out vec3 Normal;
-out vec3 UV;
-out vec3 FragPos;
+out vec3 v_pos;
+out vec3 v_normal;
+out vec3 v_uv;
 
 void main()
 {
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
-    // The position of the worldspace fragment to calculate light.
-    FragPos = vec3(model * vec4(aPos, 1.0));
-    // This transforms the normal by the normal matrix. The normal
-    // matrix is created here, but its expensive. This should could be
-    // done on the CPU and sent in as a uniform.
-    Normal = mat3(transpose(inverse(model))) * aNormal;
-    UV = aTexCoords;
+    v_pos = vec3(u_model * vec4(a_pos, 1.0));
+    v_normal = mat3(transpose(inverse(u_model))) * a_normal;
+    v_uv = a_uv;
+    gl_Position = u_projection * u_view * u_model * vec4(a_pos, 1.0);
 }
 @end
 
 @fs fs_basic
 uniform fs_basic_params {
-    vec3 lightColor;
-    vec3 lightPos;
-    int draw_mode;
-
+    int  u_draw_mode;
+    vec3 u_light_color;
+    vec3 u_light_pos;
 };
-uniform sampler2D texture1;
-uniform sampler2D palette1;
 
-out vec4 FragColor;
+uniform sampler2D u_tex;
+uniform sampler2D u_palette;
 
-in vec3 Normal;
-in vec3 UV;
-in vec3 FragPos;
+in vec3 v_pos;
+in vec3 v_normal;
+in vec3 v_uv;
+
+out vec4 frag_color;
 
 void main()
 {
     // Ambient Light
     float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * lightColor;
+    vec3 ambient = ambientStrength * u_light_color;
 
     // Diffuse Light
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(lightPos - FragPos);
+    vec3 norm = normalize(v_normal);
+    vec3 lightDir = normalize(u_light_pos - v_pos);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor;
+    vec3 diffuse = diff * u_light_color;
 
     // Texture
-    if (draw_mode == 0) {
-        vec4 tex_color = texture(texture1, vec2(UV.xy)) * 255.0;
-        uint palette_pos = uint(UV.z) * 16u + uint(tex_color.r);
-        vec4 color = texture(palette1, vec2(float(palette_pos) / 255.0, 0.0));
+    if (u_draw_mode == 0) {
+        vec4 tex_color = texture(u_tex, vec2(v_uv.xy)) * 255.0;
+        uint palette_pos = uint(v_uv.z) * 16u + uint(tex_color.r);
+        vec4 color = texture(u_palette, vec2(float(palette_pos) / 255.0, 0.0));
         if (color.a < 0.5)
             discard;
-        FragColor = vec4(ambient + diffuse, 1.0) * color;
-    } else if (draw_mode == 1) {
-        vec4 color = vec4(Normal, 1.0);
-        FragColor = vec4(ambient + diffuse, 1.0) * color;
+        frag_color = vec4(ambient + diffuse, 1.0) * color;
+    } else if (u_draw_mode == 1) {
+        vec4 color = vec4(v_normal, 1.0);
+        frag_color = vec4(ambient + diffuse, 1.0) * color;
     } else {
         vec4 color = vec4(0.6, 0.2, 0.0, 1.0);
-        FragColor = vec4(ambient + diffuse, 1.0) * color;
+        frag_color = vec4(ambient + diffuse, 1.0) * color;
     }
 }
 @end
