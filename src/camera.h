@@ -9,11 +9,11 @@
 #include "hmmmath.h"
 
 #define CAMERA_DEFAULT_FOV (45.0f)
-#define CAMERA_DEFAULT_DIST (5.0f)
+#define CAMERA_DEFAULT_DIST (3.0f)
 
 #define CAMERA_NEARZ (0.01f)
 #define CAMERA_FARZ (100.0f)
-#define CAMERA_MIN_DIST (1.0f)
+#define CAMERA_MIN_DIST (2.5f)
 #define CAMERA_MAX_DIST (100.0f)
 #define CAMERA_MIN_LAT (-85.0f)
 #define CAMERA_MAX_LAT (85.0f)
@@ -35,7 +35,6 @@ typedef struct {
     float latitude;
     float longitude;
     float fov;
-    float zoom;
 
     vec3_t eye;
     vec3_t target;
@@ -60,7 +59,6 @@ static void cam_init(camera_t* cam, const camera_desc_t* desc) {
     cam->latitude= _cam_def(desc->latitude, 30.0f);
     cam->longitude= _cam_def(desc->longitude, 30.0f);
     cam->fov = _cam_def(desc->fov, CAMERA_DEFAULT_FOV);
-    cam->zoom = 10.0f;
 }
 
 /* feed mouse movement */
@@ -79,12 +77,7 @@ static void cam_orbit(camera_t* cam, float dx, float dy) {
 // feed zoom (mouse wheel) input
 static void cam_zoom(camera_t* cam, float d) {
     assert(cam);
-    // Do both updates regardless of proj_type so when switching its not as big of a change.
-
-    // Perspective
     cam->distance = HMM_Clamp(CAMERA_MIN_DIST, cam->distance + d, CAMERA_MAX_DIST);
-    // Orthographic
-    cam->zoom = HMM_Clamp(CAMERA_MIN_DIST, cam->zoom + d, CAMERA_MAX_DIST);
 }
 
 static vec3_t _cam_euclidean(float latitude, float longitude) {
@@ -97,6 +90,7 @@ static vec3_t _cam_euclidean(float latitude, float longitude) {
 static void cam_update(camera_t* cam, int fb_width, int fb_height) {
     assert(cam);
     assert((fb_width > 0) && (fb_height > 0));
+
     cam->eye = v3_add(cam->target, v3_mulf(_cam_euclidean(cam->latitude, cam->longitude), cam->distance));
     cam->view = m4_lookat(cam->eye, cam->target, v3_new(0.0f, 1.0f, 0.0f));
 
@@ -106,8 +100,8 @@ static void cam_update(camera_t* cam, int fb_width, int fb_height) {
         cam->proj = m4_perspective(cam->fov, w/h, CAMERA_NEARZ, CAMERA_FARZ);
     } else {
         const float aspect = (float)fb_height/(float)fb_width;
-        const float w = 1.0 * cam->zoom;
-        const float h = 1.0 * aspect * cam->zoom;
+        const float w = 1.0 * cam->distance;
+        const float h = 1.0 * aspect * cam->distance;
         cam->proj = HMM_Orthographic_RH_NO(-w, w, -h, h, CAMERA_NEARZ, CAMERA_FARZ);
     }
 }
