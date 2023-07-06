@@ -75,9 +75,8 @@ static void init(void) {
     simgui_setup(&(simgui_desc_t){ 0 });
 
     cam_init(&g.cam, &(camera_desc_t){
-        .latitude = 37.0f,
-        .longitude = 210.0f,
-        .distance = 5.0,
+        .latitude = 30.0f,
+        .longitude = 35.0f,
     });
 
     g.rotate = false;
@@ -201,9 +200,8 @@ static void frame(void) {
 
         // Vertex
         mat4_t model = m4_new(1.0f);
-        // model = m4_mul(model, m4_rotate(angle_deg(g.rotate_amt), v3_new(0.0f, 1.0f, 0.0f)));
-        // model = m4_mul(model, m4_translate(g.center));
-        model = m4_mul(model, m4_scale(v3_new(0.02f, 0.02f, 0.02f)));
+        model = m4_mul(model, m4_rotate(angle_deg(g.rotate_amt), v3_new(0.0f, 1.0f, 0.0f)));
+        model = m4_mul(model, m4_translate(g.mesh.center_transform));
         vs_basic_params_t vs_params = {
             .u_projection = g.cam.proj,
             .u_view = g.cam.view,
