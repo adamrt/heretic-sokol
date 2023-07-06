@@ -86,7 +86,6 @@ static void init(void) {
     g.draw_mode = 0;
     g.ambient_color = v3_new(1.0f, 1.0f, 1.0f);
 
-
     if (!mesh_from_map(&g.mesh)) {
         printf("failed to open map file\n");
         exit(1);
@@ -105,7 +104,7 @@ static void init(void) {
     // create pipeline object
     g.pipe_object = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = sg_make_shader(basic_shader_desc(sg_query_backend())),
-        .face_winding = SG_FACEWINDING_CCW,
+        .face_winding = SG_FACEWINDING_CW,
         .cull_mode = SG_CULLMODE_BACK,
         .layout = {
             .attrs = {

@@ -350,7 +350,7 @@ vec3_t mesh_center_transform(mesh_t *mesh) {
 
     return (vec3_t){
         .X = -(vmax.X + vmin.X) / 2.0,
-        .Y = 0.0,
+        .Y = -0.5, // maps already on 0.0. The -0.5 lowers it just a bit.
         .Z = -(vmax.Z + vmin.Z) / 2.0,
     };
 }
@@ -529,13 +529,15 @@ f32 read_f1x3x12(FILE *f)
 
 vec3_t read_position(FILE *f)
 {
-    i16 x = read_i16(f);
-    i16 y = read_i16(f);
-    i16 z = read_i16(f);
+    f32 x = read_i16(f);
+    f32 y = read_i16(f);
+    f32 z = read_i16(f);
 
-    y = -y;
+    x =  x / 100.0;
+    y = -y / 100.0;
+    z = -z / 100.0;
 
-    return (vec3_t){ (f32)x, (f32)y, (f32)z };
+    return (vec3_t){ x, y, z };
 }
 
 vec3_t read_normal(FILE *f)
@@ -544,7 +546,9 @@ vec3_t read_normal(FILE *f)
     f32 y = read_f1x3x12(f);
     f32 z = read_f1x3x12(f);
 
+    x =  x;
     y = -y;
+    z = -z;
 
     return (vec3_t){ x, y, z };
 }
