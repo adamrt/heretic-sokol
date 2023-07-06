@@ -325,14 +325,14 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
     read_palette(f, sector, mesh);
     read_lights(f, sector, mesh);
 
-    mesh->center = coord_center(mesh);
+    mesh->center_transform = mesh_center_transform(mesh);
 
     mesh->is_mesh_valid = true;
     return;
 }
 
 
-vec3_t coord_center(mesh_t *mesh) {
+vec3_t mesh_center_transform(mesh_t *mesh) {
     vec3_t vmin = {.X=FLT_MAX, .Y=FLT_MAX, .Z=FLT_MAX};
     vec3_t vmax = {.X=FLT_MIN, .Y=FLT_MIN, .Z=FLT_MIN};
 
@@ -348,11 +348,10 @@ vec3_t coord_center(mesh_t *mesh) {
         vmax.Z = fmax(p.Z, vmax.Z);
     }
 
-    // Not sure why 100 is the magic-ish number
     return (vec3_t){
-        .X = -(vmax.X + vmin.X) / 100.0,
-        .Y = 0.0, // (vmax.Y + vmin.Y) / 64.0,
-        .Z = -(vmax.Z + vmin.Z) / 100.0,
+        .X = -(vmax.X + vmin.X) / 2.0,
+        .Y = 0.0,
+        .Z = -(vmax.Z + vmin.Z) / 2.0,
     };
 }
 

@@ -10,7 +10,7 @@
 
 #define MAX_VERTS 5000
 
-#define MAP_SECTOR 14239
+#define MAP_SECTOR 33032
 #define SECTOR_SIZE 2048
 #define SECTOR_RAW_SIZE 2352
 #define SECTOR_HEADER_SIZE 24
@@ -62,7 +62,8 @@ typedef struct {
     vec3_t background_top;
     vec3_t background_bottom;
 
-    vec3_t center;
+    // Transform to center all vertices.
+    vec3_t center_transform;
 
     bool is_mesh_valid;
     bool is_texture_valid;
@@ -78,7 +79,7 @@ void read_palette(FILE *f, int sector, mesh_t *mesh);
 void read_lights(FILE *f, int sector, mesh_t *mesh);
 vec4_t read_rgb15(FILE *f);
 
-vec3_t coord_center(mesh_t *mesh);
+vec3_t mesh_center_transform(mesh_t *mesh);
 
 vec3_t read_position(FILE *f);
 vec3_t read_normal(FILE *f);
