@@ -50,18 +50,19 @@ out vec4 frag_color;
 void main()
 {
     // Ambient Light
-    float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * u_ambient_color;
+    float ambientStrength = 0.2;
+    vec4 ambient = ambientStrength * vec4(u_ambient_color, 1.0);
 
     vec3 norm = normalize(v_normal);
 
-    vec3 diffuse_light_sum = vec3(0.0);
+    vec4 diffuse_light_sum = vec4(0.0, 0.0, 0.0, 1.0);
+
     for (int i = 0; i < 3; i++) {
         vec3 direction = normalize(dir_lights.position[i].xyz - v_pos.xyz);
         float intensity = max(dot(norm, direction), 0.0);
-        diffuse_light_sum += dir_lights.color[i].xyz * intensity;
+        diffuse_light_sum += dir_lights.color[i] * intensity;
     }
-    vec4 light = vec4((ambient + diffuse_light_sum) * 2.0, 1.0);
+    vec4 light = ambient * 2.0 + diffuse_light_sum;
 
     // Texture
     if (u_draw_mode == 0) {
