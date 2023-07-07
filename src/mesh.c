@@ -99,6 +99,15 @@ bool mesh_from_map(int map, mesh_t* mesh) {
         case FFTRecordTexture:
             read_texture(f, record.file_sector, mesh);
             break; // from switch
+        case FFTRecordMeshOverride:
+            // Sometimes there is no primary mesh (ie MAP002.GNS), there is
+            // only an override. Usually a non-battle map. So we treat this
+            // one as the primary, only if the primary hasn't been set. Kinda
+            // Hacky until we start treating each GNS Record as a Scenario.
+            if (!mesh->is_mesh_valid) {
+                read_mesh(f, record.file_sector, mesh);
+            }
+            break; // from switch
         default:
             break; // from switch
         }
