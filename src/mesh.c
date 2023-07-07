@@ -170,7 +170,7 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
     u16 Q = read_u16(f);
     u16 R = read_u16(f);
 
-    if (N == 0 || N > 512 || P == 0 || P > 768 || Q > 64 || R == 0 || R > 256) {
+    if (N > 512 || P > 768 || Q > 64 || R > 256) {
         printf("invalid number of polygons N:%i, P:%i, Q:%i, R:%i\n", N, P, Q, R);
         return;
     }
