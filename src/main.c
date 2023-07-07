@@ -317,7 +317,9 @@ static void draw_ui(void) {
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){480, 550}, ImGuiCond_Once);
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
-    igText("");
+    char map_title[10];
+    sprintf(map_title, "Map %d", g.mapnum);
+    igText(map_title);
 
     if (!igCollapsingHeader_TreeNodeFlags("Scene", 0)) {
         igColorEdit3("Ambient Light", &g.ambient_color, ImGuiColorEditFlags_None);
