@@ -1,6 +1,7 @@
 #include "mesh.h"
-#include <float.h>
+#include "gns.h"
 
+#include <float.h>
 
 bool mesh_from_obj(mesh_t* mesh, char* filename)
 {
@@ -71,7 +72,7 @@ bool mesh_from_obj(mesh_t* mesh, char* filename)
     return true;
 }
 
-bool mesh_from_map(mesh_t* mesh) {
+bool mesh_from_map(int map, mesh_t* mesh) {
     char *filename = "/home/adam/media/emu/fft.iso";
     FILE *f = fopen(filename, "r");
     if (f == NULL) {
@@ -79,8 +80,10 @@ bool mesh_from_map(mesh_t* mesh) {
         return  false;
     }
 
+    int sector = gns_sectors[map];
+
     gns_t gns = {0};
-    read_gns(f, MAP_SECTOR, &gns);
+    read_gns(f, sector, &gns);
     if (!gns.is_valid) {
         printf("Error reading gns\n");
         return  false;

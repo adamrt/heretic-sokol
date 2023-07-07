@@ -63,7 +63,6 @@ void main()
     }
     vec4 light = vec4((ambient + diffuse_light_sum) * 2.0, 1.0);
 
-
     // Texture
     if (u_draw_mode == 0) {
         vec4 tex_color = texture(u_tex, vec2(v_uv.xy)) * 255.0;

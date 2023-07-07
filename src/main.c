@@ -34,6 +34,9 @@ static void cleanup(void);
 static bool poll_keydown(sapp_keycode key);
 static bool poll_handle_event(const sapp_event *evt);
 static void draw_ui(void);
+static void next_map(void);
+static void prev_map(void);
+static void load_map(int map);
 
 static struct {
     f32 time;
@@ -41,10 +44,15 @@ static struct {
     f32  rotate_amt;
     int draw_mode;
 
+    int mapnum;
+
     camera_t cam;
     mesh_t mesh;
 
     vec3_t ambient_color;
+
+    sg_shader basic_shader;
+    sg_shader light_shader;
 
     sg_pipeline pipe_object;
     sg_pipeline pipe_light;
@@ -84,73 +92,9 @@ static void init(void) {
 
     g.draw_mode = 0;
     g.ambient_color = v3_new(1.0f, 1.0f, 1.0f);
+    g.mapnum = 49;
 
-    if (!mesh_from_map(&g.mesh)) {
-        printf("failed to open map file\n");
-        exit(1);
-    }
-
-    g.bind_object.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
-        .data = SG_RANGE(g.mesh.vertices),
-        .label = "cube-vertices"
-    });
-
-    g.bind_light.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
-        .data = SG_RANGE(cube_vertices),
-        .label = "light-vertices"
-    });
-
-    // create pipeline object
-    g.pipe_object = sg_make_pipeline(&(sg_pipeline_desc){
-        .shader = sg_make_shader(basic_shader_desc(sg_query_backend())),
-        .face_winding = SG_FACEWINDING_CW,
-        .cull_mode = SG_CULLMODE_BACK,
-        .layout = {
-            .attrs = {
-                [ATTR_vs_basic_a_pos].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_basic_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_basic_a_uv].format = SG_VERTEXFORMAT_FLOAT3,
-            }
-        },
-        .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
-        .label = "cube-pipeline"
-    });
-
-    g.bind_object.fs_images[SLOT_u_tex] = sg_alloc_image();
-    sg_init_image(g.bind_object.fs_images[SLOT_u_tex], &(sg_image_desc){
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .width = TEXTURE_WIDTH,
-        .height = TEXTURE_HEIGHT,
-        .data.subimage[0][0] = {
-            .ptr = g.mesh.texture,
-            .size = (size_t)(TEXTURE_NUM_BYTES),
-        },
-        .label = "cube-texture"
-    });
-
-    g.bind_object.fs_images[SLOT_u_palette] = sg_alloc_image();
-    sg_init_image(g.bind_object.fs_images[SLOT_u_palette], &(sg_image_desc){
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .width = 16 * 16,
-        .height = 1,
-        .data.subimage[0][0] = {
-            .ptr = g.mesh.palette,
-            .size = (size_t)(PALETTE_NUM_BYTES),
-        },
-        .label = "palette-texture"
-    });
-
-    g.pipe_light = sg_make_pipeline(&(sg_pipeline_desc){
-        .shader = sg_make_shader(light_shader_desc(sg_query_backend())),
-        .layout = {
-            .buffers[0].stride = 36,
-            .attrs = {
-                [ATTR_vs_light_aPos].format = SG_VERTEXFORMAT_FLOAT3,
-            }
-        },
-        .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
-        .label = "light-pipeline"
-    });
+    load_map(g.mapnum);
 
     // initial clear color
     g.pass_action = (sg_pass_action) {
@@ -159,8 +103,17 @@ static void init(void) {
 }
 
 static void event(const sapp_event* ev) {
-    if (ev->type == SAPP_EVENTTYPE_KEY_DOWN && ev->key_code == SAPP_KEYCODE_ESCAPE) {
-        sapp_quit();
+    if (ev->type == SAPP_EVENTTYPE_KEY_DOWN) {
+        if (ev->key_code == SAPP_KEYCODE_ESCAPE) {
+            sapp_quit();
+        }
+        if (ev->key_code == SAPP_KEYCODE_K) {
+            next_map();
+        }
+        if (ev->key_code == SAPP_KEYCODE_J) {
+            prev_map();
+        }
+
     }
 
     // Always register.
@@ -257,6 +210,107 @@ static void frame(void) {
     simgui_render();
     sg_end_pass();
     sg_commit();
+}
+
+static void load_map(int map) {
+    g.mesh = (mesh_t){0};
+
+    if (!mesh_from_map(map, &g.mesh)) {
+        printf("failed to open map file\n");
+        exit(1);
+    }
+
+    sg_destroy_shader(g.basic_shader);
+    sg_destroy_shader(g.light_shader);
+
+    g.basic_shader = sg_make_shader(basic_shader_desc(sg_query_backend()));
+    g.light_shader = sg_make_shader(light_shader_desc(sg_query_backend()));
+
+
+    sg_destroy_pipeline(g.pipe_object);
+    g.pipe_object = sg_make_pipeline(&(sg_pipeline_desc){
+        .shader = g.basic_shader,
+        .face_winding = SG_FACEWINDING_CW,
+        .cull_mode = SG_CULLMODE_BACK,
+        .layout = {
+            .attrs = {
+                [ATTR_vs_basic_a_pos].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_basic_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_basic_a_uv].format = SG_VERTEXFORMAT_FLOAT3,
+            }
+        },
+        .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
+        .label = "cube-pipeline"
+    });
+
+    sg_destroy_pipeline(g.pipe_light);
+    g.pipe_light = sg_make_pipeline(&(sg_pipeline_desc){
+        .shader = g.light_shader,
+        .layout = {
+            .buffers[0].stride = 36,
+            .attrs = {
+                [ATTR_vs_light_aPos].format = SG_VERTEXFORMAT_FLOAT3,
+            }
+        },
+        .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
+        .label = "light-pipeline"
+    });
+
+
+    sg_destroy_buffer(g.bind_light.vertex_buffers[0]);
+    g.bind_light.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
+        .data = SG_RANGE(cube_vertices),
+        .label = "light-vertices"
+    });
+
+
+    sg_destroy_buffer(g.bind_object.vertex_buffers[0]);
+    g.bind_object.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
+        .data = SG_RANGE(g.mesh.vertices),
+        .label = "map-vertices"
+    });
+
+    sg_destroy_image(g.bind_object.fs_images[SLOT_u_tex]);
+    g.bind_object.fs_images[SLOT_u_tex] = sg_alloc_image();
+    sg_init_image(g.bind_object.fs_images[SLOT_u_tex], &(sg_image_desc){
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .width = TEXTURE_WIDTH,
+        .height = TEXTURE_HEIGHT,
+        .data.subimage[0][0] = {
+            .ptr = g.mesh.texture,
+            .size = (size_t)(TEXTURE_NUM_BYTES),
+        },
+        .label = "cube-texture"
+    });
+
+    sg_destroy_image(g.bind_object.fs_images[SLOT_u_palette]);
+    g.bind_object.fs_images[SLOT_u_palette] = sg_alloc_image();
+    sg_init_image(g.bind_object.fs_images[SLOT_u_palette], &(sg_image_desc){
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .width = 16 * 16,
+        .height = 1,
+        .data.subimage[0][0] = {
+            .ptr = g.mesh.palette,
+            .size = (size_t)(PALETTE_NUM_BYTES),
+        },
+        .label = "palette-texture"
+    });
+};
+
+static void next_map(void) {
+    g.mapnum++;
+    if (g.mapnum > 119) {
+        g.mapnum = 1;
+    }
+    load_map(g.mapnum);
+}
+
+static void prev_map(void) {
+    g.mapnum--;
+    if (g.mapnum < 1) {
+        g.mapnum = 119;
+    }
+    load_map(g.mapnum);
 }
 
 static void draw_ui(void) {

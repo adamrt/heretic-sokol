@@ -70,7 +70,7 @@ typedef struct {
 } mesh_t;
 
 bool mesh_from_obj(mesh_t *mesh, char *filename);
-bool mesh_from_map(mesh_t *mesh);
+bool mesh_from_map(int map, mesh_t *mesh);
 
 void read_gns(FILE* f, int sector, gns_t *gns);
 void read_mesh(FILE *f, int sector, mesh_t *mesh);
