@@ -46,6 +46,8 @@ static struct {
 
     vec3_t ambient_color;
 
+    vec4_t clear_color;
+
     sg_shader basic_shader;
     sg_shader light_shader;
 
@@ -88,10 +90,11 @@ static void init(void) {
 
     load_map(g.mapnum);
 
+    g.clear_color = (vec4_t){ 0.2f, 0.3f, 0.3f, 1.0f };
+
     // initial clear color
-    g.pass_action = (sg_pass_action) {
-        .colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 0.2f, 0.3f, 0.3f, 1.0f } }
-    };
+    g.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
+    g.pass_action.colors[0].clear_value = (sg_color){g.clear_color.R, g.clear_color.G, g.clear_color.B, g.clear_color.A};
 }
 
 static void event(const sapp_event* ev) {
@@ -307,7 +310,7 @@ static void load_map(i32 map) {
         },
         .label = "palette-texture-squared"
     });
-};
+}
 
 static void next_map(void) {
     g.mapnum++;
@@ -350,7 +353,7 @@ static void draw_ui(void) {
         igRadioButton_IntPtr("Textured", &g.draw_mode, 0); igSameLine(100, 10);
         igRadioButton_IntPtr("Normals", &g.draw_mode, 1);igSameLine(200, 10);
         igRadioButton_IntPtr("Color", &g.draw_mode, 2);
-        igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
+        igColorEdit4("Background", &g.clear_color.Elements[0], ImGuiColorEditFlags_None);
         igText("");
     }
     if (!igCollapsingHeader_TreeNodeFlags("Camera", 0)) {

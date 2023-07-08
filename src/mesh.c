@@ -16,9 +16,9 @@ b8 mesh_from_obj(mesh_t* mesh, char* filename)
     vec3_t temp_vertices[MAX_VERTS];
     vec3_t temp_normals[MAX_VERTS];
     vec2_t temp_uvs[MAX_VERTS];
-    u32 temp_num_vertices;
-    u32 temp_num_normals;
-    u32 temp_num_uvs;
+    u32 temp_num_vertices = {0};
+    u32 temp_num_normals = {0};
+    u32 temp_num_uvs = {0};
 
     while (fgets(line, 1024, file)) {
         // Vertex information
@@ -58,7 +58,7 @@ b8 mesh_from_obj(mesh_t* mesh, char* filename)
                 vec3_t v = temp_vertices[vertex_indices[i]-1];
                 vec3_t n = temp_normals[normal_indices[i]-1];
                 vec2_t t = temp_uvs[uv_indices[i]-1];
-                mesh->vertices[mesh->num_vertices] = (vertex_t){v, n, t};;
+                mesh->vertices[mesh->num_vertices] = (vertex_t){v, n, t, 0.0f};;
                 mesh->num_vertices++;
 
                 if (mesh->num_vertices >= MAX_VERTS) {
@@ -121,37 +121,37 @@ b8 mesh_from_map(int map, mesh_t* mesh) {
     return true;
 }
 
-static void seek_sector(FILE *f, int sector) {
-    i32 to = (sector * SECTOR_RAW_SIZE) + SECTOR_HEADER_SIZE;
-    fseek(f, to, SEEK_SET);
-}
+/* static void seek_sector(FILE *f, int sector) { */
+/*     i32 to = (sector * SECTOR_RAW_SIZE) + SECTOR_HEADER_SIZE; */
+/*     fseek(f, to, SEEK_SET); */
+/* } */
 
-static void read_sector(FILE *f, int sector, u8 *bytes) {
-    seek_sector(f, sector);
-    size_t n = fread(bytes, sizeof(u8), SECTOR_SIZE, f);
-    if (n != SECTOR_SIZE) {
-        printf("failed to read sector");
-        exit(1);
-    }
-}
+/* static void read_sector(FILE *f, int sector, u8 *bytes) { */
+/*     seek_sector(f, sector); */
+/*     size_t n = fread(bytes, sizeof(u8), SECTOR_SIZE, f); */
+/*     if (n != SECTOR_SIZE) { */
+/*         printf("failed to read sector"); */
+/*         exit(1); */
+/*     } */
+/* } */
 
 typedef struct {
     u8* data;
     size_t len;
 } file_t;
 
-static file_t read_file(FILE *f, int sector, size_t size)  {
-    u8* file_data = malloc(size * sizeof(u8)); // array to hold the result
-    i32 point = 0;
-    i32 occupied_sectors = ceil(size / (f32)SECTOR_SIZE);
-    for (int i = 0; i < occupied_sectors; i++) {
-        u8 sector_data[SECTOR_SIZE];
-        read_sector(f, sector + i, sector_data);
-        memcpy(file_data, sector_data, SECTOR_SIZE * sizeof(u8)); // copy 4 floats from x to total[0]...total[3]
-        point += SECTOR_SIZE;
-    }
-    return (file_t){.data=file_data, .len=point};
-}
+/* static file_t read_file(FILE *f, int sector, size_t size)  { */
+/*     u8* file_data = malloc(size * sizeof(u8)); // array to hold the result */
+/*     i32 point = 0; */
+/*     i32 occupied_sectors = ceil(size / (f32)SECTOR_SIZE); */
+/*     for (int i = 0; i < occupied_sectors; i++) { */
+/*         u8 sector_data[SECTOR_SIZE]; */
+/*         read_sector(f, sector + i, sector_data); */
+/*         memcpy(file_data, sector_data, SECTOR_SIZE * sizeof(u8)); // copy 4 floats from x to total[0]...total[3] */
+/*         point += SECTOR_SIZE; */
+/*     } */
+/*     return (file_t){.data=file_data, .len=point}; */
+/* } */
 
 // process_tex_coords has two functions:
 //
@@ -256,8 +256,8 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
     // Should be equal to (N*3)+(P*3*2)+(Q*3)+(R*3*2)
     mesh->num_vertices = index;
 
-
-    if (mesh->num_vertices != (N*3)+(P*3*2)+(Q*3)+(R*3*2)) {
+    u32 expected_num_vertices = (u32)(N*3)+(P*3*2)+(Q*3)+(R*3*2);
+    if (mesh->num_vertices != expected_num_vertices) {
         printf("invalid num vertices got: %d, want: %d\n", index, (N*3)+(P*3*2)+(Q*3)+(R*3*2));
         return;
     }
@@ -372,7 +372,7 @@ vec3_t mesh_center_transform(mesh_t *mesh) {
     vec3_t vmin = {.X=FLT_MAX, .Y=FLT_MAX, .Z=FLT_MAX};
     vec3_t vmax = {.X=FLT_MIN, .Y=FLT_MIN, .Z=FLT_MIN};
 
-    for (int i = 0; i < mesh->num_vertices; i++) {
+    for (u32 i = 0; i < mesh->num_vertices; i++) {
         vec3_t p = mesh->vertices[i].position;
 
         vmin.X = fmin(p.X, vmin.X);
@@ -413,7 +413,7 @@ void read_palette(FILE *f, int sector, mesh_t *mesh) {
         mesh->palette[i+2] = c.B;
         mesh->palette[i+3] = c.A;
     }
-};
+}
 
 vec4_t read_rgb15(FILE *f) {
         u16 val = read_u16(f);
@@ -453,7 +453,7 @@ void read_lights(FILE *f, int sector, mesh_t *mesh) {
 
     vec4_t c = read_rgb15(f);
     mesh->ambient_light = (vec3_t){c.R, c.G, c.B};
-};
+}
 
 void read_texture(FILE *f, int sector, mesh_t *mesh) {
     fseek(f, sector * SECTOR_LEN, SEEK_SET);
@@ -498,13 +498,13 @@ void read_gns(FILE *f, int sector, gns_t *gns) {
             return;
         }
 
-        u8 room_arrangement = read_u8(f);
-        u8 time_weather = read_u8(f);
+        u8 room_arrangement = read_u8(f); (void)room_arrangement;
+        u8 time_weather = read_u8(f);     (void)time_weather;
         u16 file_type = read_u16(f);
         (void)read_u16(f); // padding
         u16 file_sector = read_u16(f);
         (void)read_u16(f); // padding
-        u32 file_length = read_u32(f);
+        u32 file_length = read_u32(f);    (void) file_length;
         (void)read_u32(f); // padding
 
         if (file_type == FFTRecordEnd) {
