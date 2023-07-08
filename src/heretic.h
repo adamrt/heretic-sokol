@@ -15,5 +15,6 @@ typedef double   f64;
 typedef struct {
     vec3_t position;
     vec3_t normal;
-    vec3_t texcoords;
+    vec2_t texcoords;
+    f32    palette;
 } vertex_t;

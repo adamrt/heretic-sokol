@@ -15,7 +15,7 @@ bool mesh_from_obj(mesh_t* mesh, char* filename)
 
     vec3_t temp_vertices[MAX_VERTS];
     vec3_t temp_normals[MAX_VERTS];
-    vec3_t temp_uvs[MAX_VERTS];
+    vec2_t temp_uvs[MAX_VERTS];
     u32 temp_num_vertices;
     u32 temp_num_normals;
     u32 temp_num_uvs;
@@ -35,7 +35,7 @@ bool mesh_from_obj(mesh_t* mesh, char* filename)
         }
         // Texture coordinate information
         if (strncmp(line, "vt ", 3) == 0) {
-            vec3_t uv = {0}; // extra space for fft
+            vec2_t uv = {0}; // extra space for fft
             sscanf(line, "vt %f %f", &uv.X, &uv.Y);
             temp_uvs[temp_num_uvs++] = uv;
         }
@@ -56,8 +56,8 @@ bool mesh_from_obj(mesh_t* mesh, char* filename)
 
             for (i32 i = 0; i < 3; i++) {
                 vec3_t v = temp_vertices[vertex_indices[i]-1];
-                vec3_t t = temp_uvs[uv_indices[i]-1];
                 vec3_t n = temp_normals[normal_indices[i]-1];
+                vec2_t t = temp_uvs[uv_indices[i]-1];
                 mesh->vertices[mesh->num_vertices] = (vertex_t){v, n, t};;
                 mesh->num_vertices++;
 
@@ -292,13 +292,16 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
         f32 cu = read_u8(f);
         f32 cv = read_u8(f);
 
-        vec3_t a = { au / 255.0, (av + (page*256)) / 1023.0, .Z = palette};
-        vec3_t b = { bu / 255.0, (bv + (page*256)) / 1023.0, .Z = palette};
-        vec3_t c = { cu / 255.0, (cv + (page*256)) / 1023.0, .Z = palette};
+        vec2_t a = { au / 255.0, (av + (page*256)) / 1023.0};
+        vec2_t b = { bu / 255.0, (bv + (page*256)) / 1023.0};
+        vec2_t c = { cu / 255.0, (cv + (page*256)) / 1023.0};
 
         mesh->vertices[i+0].texcoords = a;
+        mesh->vertices[i+0].palette = palette;
         mesh->vertices[i+1].texcoords = b;
+        mesh->vertices[i+1].palette = palette;
         mesh->vertices[i+2].texcoords = c;
+        mesh->vertices[i+2].palette = palette;
     }
 
     index = index + (N * 3);
@@ -318,20 +321,26 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
         f32 du = read_u8(f);
         f32 dv = read_u8(f);
 
-        vec3_t a = { au / 255.0, (av + (page*256)) / 1023.0, .Z = palette};
-        vec3_t b = { bu / 255.0, (bv + (page*256)) / 1023.0, .Z = palette};
-        vec3_t c = { cu / 255.0, (cv + (page*256)) / 1023.0, .Z = palette};
-        vec3_t d = { du / 255.0, (dv + (page*256)) / 1023.0, .Z = palette};
+        vec2_t a = { au / 255.0, (av + (page*256)) / 1023.0};
+        vec2_t b = { bu / 255.0, (bv + (page*256)) / 1023.0};
+        vec2_t c = { cu / 255.0, (cv + (page*256)) / 1023.0};
+        vec2_t d = { du / 255.0, (dv + (page*256)) / 1023.0};
 
         // Triangle A
         mesh->vertices[i+0].texcoords = a;
+        mesh->vertices[i+0].palette = palette;
         mesh->vertices[i+1].texcoords = b;
+        mesh->vertices[i+1].palette = palette;
         mesh->vertices[i+2].texcoords = c;
+        mesh->vertices[i+2].palette = palette;
 
         // Triangle B
         mesh->vertices[i+3].texcoords = b;
+        mesh->vertices[i+3].palette = palette;
         mesh->vertices[i+4].texcoords = d;
+        mesh->vertices[i+4].palette = palette;
         mesh->vertices[i+5].texcoords = c;
+        mesh->vertices[i+5].palette = palette;
     }
 
     read_palette(f, sector, mesh);

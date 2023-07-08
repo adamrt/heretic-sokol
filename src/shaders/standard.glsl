@@ -9,19 +9,22 @@ uniform vs_basic_params {
     mat4 u_projection;
 };
 
-in vec3 a_pos;
-in vec3 a_normal;
-in vec3 a_uv;
+in vec3  a_pos;
+in vec3  a_normal;
+in vec2  a_uv;
+in float a_palette;
 
-out vec3 v_pos;
-out vec3 v_normal;
-out vec3 v_uv;
+out vec3  v_pos;
+out vec3  v_normal;
+out vec2  v_uv;
+out float v_palette;
 
 void main()
 {
     v_pos = vec3(u_model * vec4(a_pos, 1.0));
     v_normal = mat3(transpose(inverse(u_model))) * a_normal;
     v_uv = a_uv;
+    v_palette = a_palette;
     gl_Position = u_projection * u_view * u_model * vec4(a_pos, 1.0);
 }
 @end
@@ -41,9 +44,10 @@ uniform fs_basic_params {
 uniform sampler2D u_tex;
 uniform sampler2D u_palette;
 
-in vec3 v_pos;
-in vec3 v_normal;
-in vec3 v_uv;
+in vec3  v_pos;
+in vec3  v_normal;
+in vec2  v_uv;
+in float v_palette;
 
 out vec4 frag_color;
 
@@ -66,8 +70,8 @@ void main()
 
     // Texture
     if (u_draw_mode == 0) {
-        vec4 tex_color = texture(u_tex, vec2(v_uv.xy)) * 255.0;
-        uint palette_pos = uint(v_uv.z) * 16u + uint(tex_color.r);
+        vec4 tex_color = texture(u_tex, v_uv) * 255.0;
+        uint palette_pos = uint(v_palette) * 16u + uint(tex_color.r);
         vec4 color = texture(u_palette, vec2(float(palette_pos) / 255.0, 0.0));
         if (color.a < 0.5)
             discard;

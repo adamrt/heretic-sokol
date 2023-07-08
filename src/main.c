@@ -240,7 +240,8 @@ static void load_map(int map) {
             .attrs = {
                 [ATTR_vs_basic_a_pos].format = SG_VERTEXFORMAT_FLOAT3,
                 [ATTR_vs_basic_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_basic_a_uv].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_basic_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
+                [ATTR_vs_basic_a_palette].format = SG_VERTEXFORMAT_FLOAT,
             }
         },
         .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
