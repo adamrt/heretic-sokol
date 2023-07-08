@@ -361,22 +361,24 @@ static void draw_ui(void) {
     igText(map_title);
 
     if (!igCollapsingHeader_TreeNodeFlags("Scene", 0)) {
-        igColorEdit3("Ambient Light", &g.ambient_color, ImGuiColorEditFlags_None);
-        igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
-        igText("");
-
-    }
-
-    if (!igCollapsingHeader_TreeNodeFlags("Model", 0)) {
+        igRadioButton_IntPtr("Orthographic", &g.cam.proj_type, 1); igSameLine(100, 30);
+        igRadioButton_IntPtr("Perspective", &g.cam.proj_type, 0);
         igRadioButton_IntPtr("Textured", &g.draw_mode, 0); igSameLine(100, 10);
         igRadioButton_IntPtr("Normals", &g.draw_mode, 1);igSameLine(200, 10);
         igRadioButton_IntPtr("Color", &g.draw_mode, 2);
-        igCheckbox("Rotate", &g.rotate);
+        igColorEdit3("Background", &g.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
         igText("");
-
+    }
+    if (!igCollapsingHeader_TreeNodeFlags("Camera", 0)) {
+        igCheckbox("Rotate", &g.rotate);
+        igSliderFloat("Latitude", &g.cam.latitude, -85.0f, 85.0f, "%0.2f", 0);
+        igSliderFloat("Longitude", &g.cam.longitude, 0.0f, 360.0f, "%0.2f", 0);
+        igText("");
     }
 
     if (!igCollapsingHeader_TreeNodeFlags("Lights", 0)) {
+        igSeparatorText("Ambient");
+        igColorEdit3("Color", &g.ambient_color, ImGuiColorEditFlags_None);
         for (int i = 0; i < 3; i++) {
             igPushID_Int(i);
             char title[10];
@@ -387,12 +389,6 @@ static void draw_ui(void) {
             igPopID();
         }
         igText("");
-    }
-
-    if (!igCollapsingHeader_TreeNodeFlags("Camera", 0)) {
-        igCheckbox("Orthographic", &g.cam.proj_type);
-        igSliderFloat("Lat", &g.cam.latitude, -85.0f, 85.0f, "%0.2f", 0);
-        igSliderFloat("Long", &g.cam.longitude, 0.0f, 360.0f, "%0.2f", 0);
     }
     igEnd();
 }
