@@ -345,8 +345,8 @@ static void draw_ui(void) {
     igText(map_title);
 
     if (!igCollapsingHeader_TreeNodeFlags("Scene", 0)) {
-        igRadioButton_IntPtr("Orthographic", &g.cam.proj_type, 1); igSameLine(100, 30);
-        igRadioButton_IntPtr("Perspective", &g.cam.proj_type, 0);
+        igRadioButton_IntPtr("Orthographic", (i32*)&g.cam.proj_type, 1); igSameLine(100, 30);
+        igRadioButton_IntPtr("Perspective", (i32*)&g.cam.proj_type, 0);
         igRadioButton_IntPtr("Textured", &g.draw_mode, 0); igSameLine(100, 10);
         igRadioButton_IntPtr("Normals", &g.draw_mode, 1);igSameLine(200, 10);
         igRadioButton_IntPtr("Color", &g.draw_mode, 2);
@@ -361,14 +361,14 @@ static void draw_ui(void) {
 
     if (!igCollapsingHeader_TreeNodeFlags("Lights", 0)) {
         igSeparatorText("Ambient");
-        igColorEdit3("Color", &g.ambient_color, ImGuiColorEditFlags_None);
+        igColorEdit3("Color", &g.ambient_color.Elements[0], ImGuiColorEditFlags_None);
         for (i32 i = 0; i < 3; i++) {
             igPushID_Int(i);
             char title[10];
             sprintf(title, "Light %d", i);
             igSeparatorText(title);
-            igSliderFloat3("Position", &g.mesh.dir_lights[i].position, -5000.0f, 5000.0f, "%0.2f", 0);
-            igColorEdit3("Color", &g.mesh.dir_lights[i].color, ImGuiColorEditFlags_None);
+            igSliderFloat3("Position", &g.mesh.dir_lights[i].position.Elements[0], -5000.0f, 5000.0f, "%0.2f", 0);
+            igColorEdit3("Color", &g.mesh.dir_lights[i].color.Elements[0], ImGuiColorEditFlags_None);
             igPopID();
         }
         igText("");

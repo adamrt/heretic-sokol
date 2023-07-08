@@ -40,7 +40,7 @@ typedef struct {
     vec3_t eye;
     vec3_t target;
 
-    b8 proj_type;
+    u8 proj_type;
 
     mat4_t view;
     mat4_t proj;
