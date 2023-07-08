@@ -68,8 +68,17 @@ void main()
     }
     vec4 light = ambient * 2.0 + diffuse_light_sum;
 
-    // Texture
+    // Draw black for triangles without normals (untextured triangles)
+    if (v_normal.x + v_normal.y + v_normal.z + v_uv.x + v_uv.y == 0.0) {
+        // Draw black for things without normals and uv coords.
+        // The uv coords and normal could actually be 0 so we check them both.
+        frag_color = light * vec4(0.1, 0.1, 0.1, 1.0);
+        return;
+    }
+
     if (u_draw_mode == 0) {
+        // Textured
+
         // This has to be 256.0 instead of 255 (really 255.1 is fine).
         // And palette_pos needs to be calculated then cast to uint,
         // not casting each to uint then calculating. Otherwise there
@@ -81,8 +90,10 @@ void main()
             discard;
         frag_color = light * color;
     } else if (u_draw_mode == 1) {
+        // Normals
         frag_color = vec4(v_normal, 1.0);
     } else {
+        // Flat White and lighting
         vec4 color = vec4(0.8f, 0.8f, 0.8f, 1.0f);
         frag_color = light * color;
     }
