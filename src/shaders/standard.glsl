@@ -75,7 +75,7 @@ void main()
     } else if (u_draw_mode == 1) {
         frag_color = vec4(v_normal, 1.0);
     } else {
-        vec4 color = vec4(0.6, 0.2, 0.0, 1.0);
+        vec4 color = vec4(0.8f, 0.8f, 0.8f, 1.0f);
         frag_color = light * color;
     }
 }
