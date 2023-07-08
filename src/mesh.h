@@ -76,7 +76,6 @@ typedef struct {
     b8 is_texture_valid;
 } mesh_t;
 
-b8 mesh_from_obj(mesh_t *mesh, char *filename);
 b8 mesh_from_map(int map, mesh_t *mesh);
 
 void read_gns(FILE* f, int sector, gns_t *gns);
