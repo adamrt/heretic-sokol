@@ -357,6 +357,7 @@ static void draw_ui(void) {
         igText("");
     }
     if (!igCollapsingHeader_TreeNodeFlags("Camera", 0)) {
+        igSliderFloat("Distance", &g.cam.distance, -100.0f, 100.0f, "%0.2f", 0);
         igSliderFloat("Latitude", &g.cam.latitude, -85.0f, 85.0f, "%0.2f", 0);
         igSliderFloat("Longitude", &g.cam.longitude, 0.0f, 360.0f, "%0.2f", 0);
         igText("");
