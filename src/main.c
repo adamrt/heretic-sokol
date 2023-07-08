@@ -2,6 +2,7 @@
 #include "cube.h"
 #include "defines.h"
 #include "mesh.h"
+#include "keystate.h"
 
 #define SOKOL_IMPL
 #define SOKOL_GLCORE33
@@ -20,19 +21,11 @@
 
 #include "hmmmath.h"
 
-// Key polling setup
-#define BIT_INDEX(key) ((key) / 8)
-#define BIT_MASK(key) (1 << ((key) % 8))
-#define KEYDOWN_MAX 64
-static u8 poll_keydown_state[KEYDOWN_MAX];
-
 // Forward declarations;
 static void init(void);
 static void event(const sapp_event* ev);
 static void frame(void);
 static void cleanup(void);
-static b8 poll_keydown(sapp_keycode key);
-static b8 poll_handle_event(const sapp_event *evt);
 static void draw_ui(void);
 static void next_map(void);
 static void prev_map(void);
@@ -120,8 +113,7 @@ static void event(const sapp_event* ev) {
 
     }
 
-    // Always register.
-    poll_handle_event(ev);
+    keystate_handle_event(ev);
 
     if (simgui_handle_event(ev)) {
         return;
@@ -392,34 +384,6 @@ static void draw_ui(void) {
         igText("");
     }
     igEnd();
-}
-
-// poll_keydown returns a bool for a keys current pressed stated.
-static b8 poll_keydown(sapp_keycode key) {
-    return poll_keydown_state[BIT_INDEX(key)] & BIT_MASK(key);
-}
-
-// poll_handle_event processes sokol/glfw events as they come in and
-// sets keystate. This is used instead of the standard event callback
-// because we want to check state per-frame, instead of only when a
-// new event is fired. This is useful for smooth camera movement when
-// holding a key down.
-static b8 poll_handle_event(const sapp_event* evt) {
-    switch (evt->type) {
-    case SAPP_EVENTTYPE_KEY_DOWN:
-        poll_keydown_state[BIT_INDEX(evt->key_code)] |= BIT_MASK(evt->key_code);
-        return true;
-    case SAPP_EVENTTYPE_KEY_UP:
-        poll_keydown_state[BIT_INDEX(evt->key_code)] &= ~BIT_MASK(evt->key_code);
-        return true;
-    case SAPP_EVENTTYPE_UNFOCUSED:
-    case SAPP_EVENTTYPE_SUSPENDED:
-    case SAPP_EVENTTYPE_ICONIFIED:
-        memset(poll_keydown_state, 0, sizeof(poll_keydown_state));
-        return true;
-    default:
-        return false;
-    }
 }
 
 static void cleanup(void) {
