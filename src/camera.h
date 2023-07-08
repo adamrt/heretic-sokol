@@ -3,9 +3,10 @@
 #include <assert.h>
 #include <string.h>
 #include <math.h>
-#include <stdbool.h>
 
 #include "sokol_app.h"
+
+#include "defines.h"
 #include "hmmmath.h"
 
 #define CAMERA_DEFAULT_FOV (45.0f)
@@ -19,10 +20,10 @@
 #define CAMERA_MAX_LAT (85.0f)
 
 typedef struct {
-    float distance;
-    float fov;
-    float latitude;
-    float longitude;
+    f32 distance;
+    f32 fov;
+    f32 latitude;
+    f32 longitude;
 } camera_desc_t;
 
 enum {
@@ -31,21 +32,21 @@ enum {
 };
 
 typedef struct {
-    float distance;
-    float latitude;
-    float longitude;
-    float fov;
+    f32 distance;
+    f32 latitude;
+    f32 longitude;
+    f32 fov;
 
     vec3_t eye;
     vec3_t target;
 
-    bool proj_type;
+    b8 proj_type;
 
     mat4_t view;
     mat4_t proj;
 } camera_t;
 
-static float _cam_def(float val, float def) {
+static f32 _cam_def(f32 val, f32 def) {
     return ((val == 0.0f) ? def:val);
 }
 
@@ -62,7 +63,7 @@ static void cam_init(camera_t* cam, const camera_desc_t* desc) {
 }
 
 /* feed mouse movement */
-static void cam_orbit(camera_t* cam, float dx, float dy) {
+static void cam_orbit(camera_t* cam, f32 dx, f32 dy) {
     assert(cam);
     cam->longitude -= dx;
     if (cam->longitude < 0.0f) {
@@ -75,19 +76,19 @@ static void cam_orbit(camera_t* cam, float dx, float dy) {
 }
 
 // feed zoom (mouse wheel) input
-static void cam_zoom(camera_t* cam, float d) {
+static void cam_zoom(camera_t* cam, f32 d) {
     assert(cam);
     cam->distance = HMM_Clamp(CAMERA_MIN_DIST, cam->distance + d, CAMERA_MAX_DIST);
 }
 
-static vec3_t _cam_euclidean(float latitude, float longitude) {
-    const float lat = angle_deg(latitude);
-    const float lng = angle_deg(longitude);
+static vec3_t _cam_euclidean(f32 latitude, f32 longitude) {
+    const f32 lat = angle_deg(latitude);
+    const f32 lng = angle_deg(longitude);
     return v3_new(cosf(lat) * sinf(lng), sinf(lat), cosf(lat) * cosf(lng));
 }
 
 /* update the view, proj and view_proj matrix */
-static void cam_update(camera_t* cam, int fb_width, int fb_height) {
+static void cam_update(camera_t* cam, i32 fb_width, i32 fb_height) {
     assert(cam);
     assert((fb_width > 0) && (fb_height > 0));
 
@@ -95,13 +96,13 @@ static void cam_update(camera_t* cam, int fb_width, int fb_height) {
     cam->view = m4_lookat(cam->eye, cam->target, v3_new(0.0f, 1.0f, 0.0f));
 
     if (cam->proj_type == Perspective){
-        const float w = (float) fb_width;
-        const float h = (float) fb_height;
+        const f32 w = (float) fb_width;
+        const f32 h = (float) fb_height;
         cam->proj = m4_perspective(cam->fov, w/h, CAMERA_NEARZ, CAMERA_FARZ);
     } else {
-        const float aspect = (float)fb_height/(float)fb_width;
-        const float w = 1.0 * cam->distance;
-        const float h = 1.0 * aspect * cam->distance;
+        const f32 aspect = (float)fb_height/(float)fb_width;
+        const f32 w = 1.0 * cam->distance;
+        const f32 h = 1.0 * aspect * cam->distance;
         cam->proj = HMM_Orthographic_RH_NO(-w, w, -h, h, CAMERA_NEARZ, CAMERA_FARZ);
     }
 }

@@ -2,8 +2,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>
-#include <stdbool.h>
 
 #include "defines.h"
 #include "hmmmath.h"
@@ -49,7 +47,7 @@ typedef struct {
 typedef struct {
     gns_record_t records[MAX_GNS_RECORDS];
     i8 num_records;
-    bool is_valid;
+    b8 is_valid;
 } gns_t;
 
 typedef struct {
@@ -74,12 +72,12 @@ typedef struct {
     // Transform to center all vertices.
     vec3_t center_transform;
 
-    bool is_mesh_valid;
-    bool is_texture_valid;
+    b8 is_mesh_valid;
+    b8 is_texture_valid;
 } mesh_t;
 
-bool mesh_from_obj(mesh_t *mesh, char *filename);
-bool mesh_from_map(int map, mesh_t *mesh);
+b8 mesh_from_obj(mesh_t *mesh, char *filename);
+b8 mesh_from_map(int map, mesh_t *mesh);
 
 void read_gns(FILE* f, int sector, gns_t *gns);
 void read_mesh(FILE *f, int sector, mesh_t *mesh);

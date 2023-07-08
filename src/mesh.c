@@ -3,7 +3,7 @@
 
 #include <float.h>
 
-bool mesh_from_obj(mesh_t* mesh, char* filename)
+b8 mesh_from_obj(mesh_t* mesh, char* filename)
 {
     FILE* file;
     file = fopen(filename, "r");
@@ -72,7 +72,7 @@ bool mesh_from_obj(mesh_t* mesh, char* filename)
     return true;
 }
 
-bool mesh_from_map(int map, mesh_t* mesh) {
+b8 mesh_from_map(int map, mesh_t* mesh) {
     char *filename = "/home/adam/media/emu/fft.iso";
     FILE *f = fopen(filename, "r");
     if (f == NULL) {

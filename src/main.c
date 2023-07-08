@@ -24,27 +24,27 @@
 #define BIT_INDEX(key) ((key) / 8)
 #define BIT_MASK(key) (1 << ((key) % 8))
 #define KEYDOWN_MAX 64
-static uint8_t poll_keydown_state[KEYDOWN_MAX];
+static u8 poll_keydown_state[KEYDOWN_MAX];
 
 // Forward declarations;
 static void init(void);
 static void event(const sapp_event* ev);
 static void frame(void);
 static void cleanup(void);
-static bool poll_keydown(sapp_keycode key);
-static bool poll_handle_event(const sapp_event *evt);
+static b8 poll_keydown(sapp_keycode key);
+static b8 poll_handle_event(const sapp_event *evt);
 static void draw_ui(void);
 static void next_map(void);
 static void prev_map(void);
-static void load_map(int map);
+static void load_map(i32 map);
 
 static struct {
     f32 time;
-    bool rotate;
+    b8 rotate;
     f32  rotate_amt;
-    int draw_mode;
+    i32 draw_mode;
 
-    int mapnum;
+    i32 mapnum;
 
     camera_t cam;
     mesh_t mesh;
@@ -65,7 +65,7 @@ static struct {
     sg_pass_action pass_action;
 } g;
 
-sapp_desc sokol_main(int argc, char* argv[]) {
+sapp_desc sokol_main(i32 argc, char* argv[]) {
     (void)argc;
     (void)argv;
     return (sapp_desc){
@@ -174,7 +174,7 @@ static void frame(void) {
         sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_basic_params, &SG_RANGE(fs_params));
 
         fs_dir_lights_t fs_lights = {0};
-        for (int i = 0; i < 3; i++) {
+        for (i32 i = 0; i < 3; i++) {
             vec3_t c = g.mesh.dir_lights[i].color;
             vec3_t p = g.mesh.dir_lights[i].position;
             fs_lights.color[i] = (vec4_t){c.R, c.G, c.B, 255.0};
@@ -196,7 +196,7 @@ static void frame(void) {
         };
 
         // Vertex
-        for (int i = 0; i < 3; i++) {
+        for (i32 i = 0; i < 3; i++) {
             mat4_t model = m4_new(1.0f);
             model = m4_mul(model, m4_translate(g.mesh.dir_lights[i].position));
             model = m4_mul(model, m4_scale(v3_new(0.2f, 0.2f, 0.2f)));
@@ -216,7 +216,7 @@ static void frame(void) {
     sg_commit();
 }
 
-static void load_map(int map) {
+static void load_map(i32 map) {
     g.mesh = (mesh_t){0};
 
     if (!mesh_from_map(map, &g.mesh)) {
@@ -380,7 +380,7 @@ static void draw_ui(void) {
     if (!igCollapsingHeader_TreeNodeFlags("Lights", 0)) {
         igSeparatorText("Ambient");
         igColorEdit3("Color", &g.ambient_color, ImGuiColorEditFlags_None);
-        for (int i = 0; i < 3; i++) {
+        for (i32 i = 0; i < 3; i++) {
             igPushID_Int(i);
             char title[10];
             sprintf(title, "Light %d", i);
@@ -395,7 +395,7 @@ static void draw_ui(void) {
 }
 
 // poll_keydown returns a bool for a keys current pressed stated.
-static bool poll_keydown(sapp_keycode key) {
+static b8 poll_keydown(sapp_keycode key) {
     return poll_keydown_state[BIT_INDEX(key)] & BIT_MASK(key);
 }
 
@@ -404,7 +404,7 @@ static bool poll_keydown(sapp_keycode key) {
 // because we want to check state per-frame, instead of only when a
 // new event is fired. This is useful for smooth camera movement when
 // holding a key down.
-static bool poll_handle_event(const sapp_event* evt) {
+static b8 poll_handle_event(const sapp_event* evt) {
     switch (evt->type) {
     case SAPP_EVENTTYPE_KEY_DOWN:
         poll_keydown_state[BIT_INDEX(evt->key_code)] |= BIT_MASK(evt->key_code);
