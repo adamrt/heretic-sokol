@@ -184,7 +184,6 @@ static void frame(void) {
         for (i32 i = 0; i < 3; i++) {
             mat4 model = mat4_identity();
             model = mat4_mul(model, mat4_translation(g.mesh.dir_lights[i].position));
-            model = mat4_mul(model, mat4_scale((vec3){0.2f, 0.2f, 0.2f}));
             vs_params.model = model;
             sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_light_params, &SG_RANGE(vs_params));
 
