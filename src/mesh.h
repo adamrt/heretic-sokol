@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "heretic.h"
+#include "defines.h"
 #include "hmmmath.h"
 
 #define MAX_VERTS 5000
@@ -33,6 +33,13 @@ enum FFTRecord {
     FFTRecordMeshAlt = 0x3001,
     FFTRecordEnd = 0x3101,
 };
+
+typedef struct {
+    vec3_t position;
+    vec3_t normal;
+    vec2_t texcoords;
+    f32    palette;
+} vertex_t;
 
 typedef struct {
     u16 file_type;

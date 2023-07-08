@@ -1,6 +1,7 @@
 #pragma once
 
-#include "heretic.h"
+#include "defines.h"
+#include "mesh.h"
 
 vertex_t cube_vertices[] = {
     {{-0.5f, -0.5f, -0.5f}, { 0.0f,  0.0f, -1.0f}, { 0.0f, 0.0f}},

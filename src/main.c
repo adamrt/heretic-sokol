@@ -1,6 +1,6 @@
 #include "camera.h"
 #include "cube.h"
-#include "heretic.h"
+#include "defines.h"
 #include "mesh.h"
 
 #define SOKOL_IMPL
