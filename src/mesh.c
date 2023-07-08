@@ -153,6 +153,22 @@ static file_t read_file(FILE *f, int sector, size_t size)  {
     return (file_t){.data=file_data, .len=point};
 }
 
+// process_tex_coords has two functions:
+//
+// 1. Update the v coordinate to the specific page of the texture. FFT
+//    Textures have 4 pages (256x1024) and the original V specifies
+//    the pixel on one of the 4 pages. Multiply the page by the height
+//    of a single page (256).
+// 2. Normalize the coordinates that can be U:0-255 and V:0-1023. Just
+//    divide them by their max to get a 0.0-1.0 value.
+static vec2_t process_tex_coords(f32 u, f32 v, u8 page) {
+    u = u / 255.0f;
+    v = (v + (page * 256)) / 1023.0f;
+    return (vec2_t){ u, v };
+}
+
+
+
 void read_mesh(FILE *f, int sector, mesh_t *mesh) {
     fseek(f, sector * SECTOR_LEN, SEEK_SET);
     fseek(f, 0x40, SEEK_CUR);
@@ -292,9 +308,9 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
         f32 cu = read_u8(f);
         f32 cv = read_u8(f);
 
-        vec2_t a = { au / 255.0, (av + (page*256)) / 1023.0};
-        vec2_t b = { bu / 255.0, (bv + (page*256)) / 1023.0};
-        vec2_t c = { cu / 255.0, (cv + (page*256)) / 1023.0};
+        vec2_t a = process_tex_coords(au, av, page);
+        vec2_t b = process_tex_coords(bu, bv, page);
+        vec2_t c = process_tex_coords(cu, cv, page);
 
         mesh->vertices[i+0].texcoords = a;
         mesh->vertices[i+0].palette = palette;
@@ -321,10 +337,10 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
         f32 du = read_u8(f);
         f32 dv = read_u8(f);
 
-        vec2_t a = { au / 255.0, (av + (page*256)) / 1023.0};
-        vec2_t b = { bu / 255.0, (bv + (page*256)) / 1023.0};
-        vec2_t c = { cu / 255.0, (cv + (page*256)) / 1023.0};
-        vec2_t d = { du / 255.0, (dv + (page*256)) / 1023.0};
+        vec2_t a = process_tex_coords(au, av, page);
+        vec2_t b = process_tex_coords(bu, bv, page);
+        vec2_t c = process_tex_coords(cu, cv, page);
+        vec2_t d = process_tex_coords(du, dv, page);
 
         // Triangle A
         mesh->vertices[i+0].texcoords = a;
@@ -351,7 +367,6 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
     mesh->is_mesh_valid = true;
     return;
 }
-
 
 vec3_t mesh_center_transform(mesh_t *mesh) {
     vec3_t vmin = {.X=FLT_MAX, .Y=FLT_MAX, .Z=FLT_MAX};
