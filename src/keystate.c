@@ -1,6 +1,9 @@
 #include <string.h>
 #include "keystate.h"
 
+// The state of all keys currently down.
+static u8 keystate[KEYDOWN_MAX];
+
 // keystate_is_down returns a bool if that key is down.
 b8 keystate_is_down(sapp_keycode key) {
     return keystate[BIT_INDEX(key)] & BIT_MASK(key);
