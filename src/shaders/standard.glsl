@@ -70,8 +70,12 @@ void main()
 
     // Texture
     if (u_draw_mode == 0) {
-        vec4 tex_color = texture(u_tex, v_uv) * 255.0;
-        uint palette_pos = uint(v_palette) * 16u + uint(tex_color.r);
+        // This has to be 256.0 instead of 255 (really 255.1 is fine).
+        // And palette_pos needs to be calculated then cast to uint,
+        // not casting each to uint then calculating. Otherwise there
+        // will be distortion in perspective projection on some gpus.
+        vec4 tex_color = texture(u_tex, v_uv) * 256.0;
+        uint palette_pos = uint(v_palette * 16 + tex_color.r);
         vec4 color = texture(u_palette, vec2(float(palette_pos) / 255.0, 0.0));
         if (color.a < 0.5)
             discard;
