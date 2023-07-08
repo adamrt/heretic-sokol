@@ -29,9 +29,18 @@ target_link_libraries(sokol INTERFACE X11 Xi Xcursor GL dl m)
 target_link_libraries(sokol PUBLIC Threads::Threads)
 
 target_link_libraries(sokol PUBLIC cimgui)
-target_include_directories(sokol INTERFACE lib/sokol lib )
+# SYSTEM keeps compiler flags from running against sokol
+target_include_directories(sokol SYSTEM PUBLIC lib/sokol lib)
 
 add_executable(heretic src/main.c src/mesh.c src/keystate.c)
+
+file(GLOB_RECURSE SRC_DIR "src/*.c" "src/*.h")
+set_source_files_properties(
+  ${SRC_DIR}
+  PROPERTIES
+  COMPILE_FLAGS "-Wall -Wextra -Wpedantic -Werror -Wno-missing-braces"
+)
+
 target_link_libraries(heretic sokol)
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang")
