@@ -303,7 +303,7 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
         (void)read_u8(f); // padding
         f32 bu = read_u8(f);
         f32 bv = read_u8(f);
-        f32 page = (read_u8(f) & 0b11);
+        f32 page = (read_u8(f) & 0x03); // 0b00000011
         (void)read_u8(f); // padding
         f32 cu = read_u8(f);
         f32 cv = read_u8(f);
@@ -330,7 +330,7 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
         (void)read_u8(f); // padding
         f32 bu = read_u8(f);
         f32 bv = read_u8(f);
-        f32 page = (read_u8(f) & 0b11);
+        f32 page = (read_u8(f) & 0x03); // 0b00000011
         (void)read_u8(f); // padding
         f32 cu = read_u8(f);
         f32 cv = read_u8(f);
@@ -418,9 +418,9 @@ void read_palette(FILE *f, int sector, mesh_t *mesh) {
 vec4_t read_rgb15(FILE *f) {
         u16 val = read_u16(f);
         u8 a = val == 0 ? 0x00 : 0xFF;
-        u8 b = (val & 0b0111110000000000) >> 7;
-        u8 g = (val & 0b0000001111100000) >> 2;
-        u8 r = (val & 0b0000000000011111) << 3;
+        u8 b = (val & 0x7C00) >> 7; // 0b0111110000000000
+        u8 g = (val & 0x03E0) >> 2; // 0b0000001111100000
+        u8 r = (val & 0x001F) << 3; // 0b0000000000011111
         return (vec4_t){r,g,b,a};
 }
 
