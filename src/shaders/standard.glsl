@@ -1,6 +1,7 @@
-@ctype mat4 mat4_t
-@ctype vec4 vec4_t
-@ctype vec3 vec3_t
+// These are for our custom math types, which are structs, not arrays.
+@ctype mat4 mat4
+@ctype vec4 vec4
+@ctype vec3 vec3
 
 @vs vs_basic
 uniform vs_basic_params {

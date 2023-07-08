@@ -1,4 +1,5 @@
 #include <string.h>
+
 #include "keystate.h"
 
 // The state of all keys currently down.

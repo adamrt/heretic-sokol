@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "defines.h"
-#include "hmmmath.h"
+#include "maths.h"
 
 #define MAX_VERTS 5000
 
@@ -33,9 +33,9 @@ enum FFTRecord {
 };
 
 typedef struct {
-    vec3_t position;
-    vec3_t normal;
-    vec2_t texcoords;
+    vec3 position;
+    vec3 normal;
+    vec2 texcoords;
     f32    palette;
 } vertex_t;
 
@@ -51,8 +51,8 @@ typedef struct {
 } gns_t;
 
 typedef struct {
-    vec3_t position;
-    vec3_t color;
+    vec3 position;
+    vec3 color;
 } light_t;
 
 typedef struct {
@@ -65,12 +65,12 @@ typedef struct {
     u8 palette[PALETTE_NUM_BYTES];
 
     light_t dir_lights[3];
-    vec3_t ambient_light;
-    vec3_t background_top;
-    vec3_t background_bottom;
+    vec3 ambient_light;
+    vec3 background_top;
+    vec3 background_bottom;
 
     // Transform to center all vertices.
-    vec3_t center_transform;
+    vec3 center_transform;
 
     b8 is_mesh_valid;
     b8 is_texture_valid;
@@ -84,12 +84,12 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh);
 void read_texture(FILE *f, int sector, mesh_t *mesh);
 void read_palette(FILE *f, int sector, mesh_t *mesh);
 void read_lights(FILE *f, int sector, mesh_t *mesh);
-vec4_t read_rgb15(FILE *f);
+vec4 read_rgb15(FILE *f);
 
-vec3_t mesh_center_transform(mesh_t *mesh);
+vec3 mesh_center_transform(mesh_t *mesh);
 
-vec3_t read_position(FILE *f);
-vec3_t read_normal(FILE *f);
+vec3 read_position(FILE *f);
+vec3 read_normal(FILE *f);
 
 u8  read_u8(FILE *f);
 u16 read_u16(FILE *f);

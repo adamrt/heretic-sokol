@@ -6,6 +6,7 @@
 #pragma once
 
 #include "sokol_app.h"
+
 #include "defines.h"
 
 #define BIT_INDEX(key) ((key) / 8)

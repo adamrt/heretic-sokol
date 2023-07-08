@@ -1,8 +1,9 @@
 #include "camera.h"
 #include "cube.h"
 #include "defines.h"
-#include "mesh.h"
 #include "keystate.h"
+#include "maths.h"
+#include "mesh.h"
 
 #define SOKOL_IMPL
 #define SOKOL_GLCORE33
@@ -18,8 +19,6 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-
-#include "hmmmath.h"
 
 // Forward declarations;
 static void init(void);
@@ -44,9 +43,9 @@ static struct {
     sg_image maptex;
     sg_image mappalette;
 
-    vec3_t ambient_color;
+    vec3 ambient_color;
 
-    vec4_t clear_color;
+    vec4 clear_color;
 
     sg_shader basic_shader;
     sg_shader light_shader;
@@ -85,16 +84,16 @@ static void init(void) {
     });
 
     g.draw_mode = 0;
-    g.ambient_color = v3_new(1.0f, 1.0f, 1.0f);
+    g.ambient_color = (vec3){1.0f, 1.0f, 1.0f};
     g.mapnum = 49;
 
     load_map(g.mapnum);
 
-    g.clear_color = (vec4_t){ 0.2f, 0.3f, 0.3f, 1.0f };
+    g.clear_color = (vec4){ 0.2f, 0.3f, 0.3f, 1.0f };
 
     // initial clear color
     g.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
-    g.pass_action.colors[0].clear_value = (sg_color){g.clear_color.R, g.clear_color.G, g.clear_color.B, g.clear_color.A};
+    g.pass_action.colors[0].clear_value = (sg_color){g.clear_color.x, g.clear_color.y, g.clear_color.z, g.clear_color.w};
 }
 
 static void event(const sapp_event* ev) {
@@ -143,8 +142,8 @@ static void frame(void) {
         sg_apply_bindings(&g.bind_object);
 
         // Vertex
-        mat4_t model = m4_new(1.0f);
-        model = m4_mul(model, m4_translate(g.mesh.center_transform));
+        mat4 model = mat4_identity();
+        model = mat4_mul(model, mat4_translation(g.mesh.center_transform));
         vs_basic_params_t vs_params = {
             .u_projection = g.cam.proj,
             .u_view = g.cam.view,
@@ -161,10 +160,10 @@ static void frame(void) {
 
         fs_dir_lights_t fs_lights = {0};
         for (i32 i = 0; i < 3; i++) {
-            vec3_t c = g.mesh.dir_lights[i].color;
-            vec3_t p = g.mesh.dir_lights[i].position;
-            fs_lights.color[i] = (vec4_t){c.R, c.G, c.B, 255.0};
-            fs_lights.position[i] = (vec4_t){p.X, p.Y, p.Z, 255.0};
+            vec3 c = g.mesh.dir_lights[i].color;
+            vec3 p = g.mesh.dir_lights[i].position;
+            fs_lights.color[i] = (vec4){c.x, c.y, c.z, 255.0};
+            fs_lights.position[i] = (vec4){p.x, p.y, p.z, 255.0};
         }
         sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_dir_lights, &SG_RANGE(fs_lights));
 
@@ -183,9 +182,9 @@ static void frame(void) {
 
         // Vertex
         for (i32 i = 0; i < 3; i++) {
-            mat4_t model = m4_new(1.0f);
-            model = m4_mul(model, m4_translate(g.mesh.dir_lights[i].position));
-            model = m4_mul(model, m4_scale(v3_new(0.2f, 0.2f, 0.2f)));
+            mat4 model = mat4_identity();
+            model = mat4_mul(model, mat4_translation(g.mesh.dir_lights[i].position));
+            model = mat4_mul(model, mat4_scale((vec3){0.2f, 0.2f, 0.2f}));
             vs_params.model = model;
             sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_light_params, &SG_RANGE(vs_params));
 
@@ -353,7 +352,7 @@ static void draw_ui(void) {
         igRadioButton_IntPtr("Textured", &g.draw_mode, 0); igSameLine(100, 10);
         igRadioButton_IntPtr("Normals", &g.draw_mode, 1);igSameLine(200, 10);
         igRadioButton_IntPtr("Color", &g.draw_mode, 2);
-        igColorEdit4("Background", &g.clear_color.Elements[0], ImGuiColorEditFlags_None);
+        igColorEdit4("Background", (f32*)&g.clear_color, ImGuiColorEditFlags_None);
         igText("");
     }
     if (!igCollapsingHeader_TreeNodeFlags("Camera", 0)) {
@@ -365,14 +364,14 @@ static void draw_ui(void) {
 
     if (!igCollapsingHeader_TreeNodeFlags("Lights", 0)) {
         igSeparatorText("Ambient");
-        igColorEdit3("Color", &g.ambient_color.Elements[0], ImGuiColorEditFlags_None);
+        igColorEdit3("Color", (f32*)&g.ambient_color, ImGuiColorEditFlags_None);
         for (i32 i = 0; i < 3; i++) {
             igPushID_Int(i);
             char title[10];
             sprintf(title, "Light %d", i);
             igSeparatorText(title);
-            igSliderFloat3("Position", &g.mesh.dir_lights[i].position.Elements[0], -5000.0f, 5000.0f, "%0.2f", 0);
-            igColorEdit3("Color", &g.mesh.dir_lights[i].color.Elements[0], ImGuiColorEditFlags_None);
+            igSliderFloat3("Position", (f32*)&g.mesh.dir_lights[i].position, -50.0f, 50.0f, "%0.2f", 0);
+            igColorEdit3("Color", (f32*)&g.mesh.dir_lights[i].color, ImGuiColorEditFlags_None);
             igPopID();
         }
         igText("");

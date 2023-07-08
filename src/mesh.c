@@ -1,7 +1,10 @@
-#include "mesh.h"
-#include "gns.h"
-
 #include <float.h>
+#include <math.h>
+
+#include "gns.h"
+#include "maths.h"
+#include "mesh.h"
+
 
 b8 mesh_from_obj(mesh_t* mesh, char* filename)
 {
@@ -13,9 +16,9 @@ b8 mesh_from_obj(mesh_t* mesh, char* filename)
     }
     char line[1024];
 
-    vec3_t temp_vertices[MAX_VERTS];
-    vec3_t temp_normals[MAX_VERTS];
-    vec2_t temp_uvs[MAX_VERTS];
+    vec3 temp_vertices[MAX_VERTS];
+    vec3 temp_normals[MAX_VERTS];
+    vec2 temp_uvs[MAX_VERTS];
     u32 temp_num_vertices = {0};
     u32 temp_num_normals = {0};
     u32 temp_num_uvs = {0};
@@ -23,20 +26,20 @@ b8 mesh_from_obj(mesh_t* mesh, char* filename)
     while (fgets(line, 1024, file)) {
         // Vertex information
         if (strncmp(line, "v ", 2) == 0) {
-            vec3_t v;
-            sscanf(line, "v %f %f %f", &v.X, &v.Y, &v.Z);
+            vec3 v;
+            sscanf(line, "v %f %f %f", &v.x, &v.y, &v.z);
             temp_vertices[temp_num_vertices++] = v;
         }
-        // Normal information
+        // normal information
         if (strncmp(line, "vn ", 3) == 0) {
-            vec3_t n;
-            sscanf(line, "vn %f %f %f", &n.X, &n.Y, &n.Z);
+            vec3 n;
+            sscanf(line, "vn %f %f %f", &n.x, &n.y, &n.z);
             temp_normals[temp_num_normals++] = n;
         }
-        // Texture coordinate information
+        // texture coordinate information
         if (strncmp(line, "vt ", 3) == 0) {
-            vec2_t uv = {0}; // extra space for fft
-            sscanf(line, "vt %f %f", &uv.X, &uv.Y);
+            vec2 uv = {0}; // extra space for fft
+            sscanf(line, "vt %f %f", &uv.x, &uv.y);
             temp_uvs[temp_num_uvs++] = uv;
         }
         // Face information
@@ -55,9 +58,9 @@ b8 mesh_from_obj(mesh_t* mesh, char* filename)
             }
 
             for (i32 i = 0; i < 3; i++) {
-                vec3_t v = temp_vertices[vertex_indices[i]-1];
-                vec3_t n = temp_normals[normal_indices[i]-1];
-                vec2_t t = temp_uvs[uv_indices[i]-1];
+                vec3 v = temp_vertices[vertex_indices[i]-1];
+                vec3 n = temp_normals[normal_indices[i]-1];
+                vec2 t = temp_uvs[uv_indices[i]-1];
                 mesh->vertices[mesh->num_vertices] = (vertex_t){v, n, t, 0.0f};;
                 mesh->num_vertices++;
 
@@ -161,10 +164,10 @@ typedef struct {
 //    of a single page (256).
 // 2. Normalize the coordinates that can be U:0-255 and V:0-1023. Just
 //    divide them by their max to get a 0.0-1.0 value.
-static vec2_t process_tex_coords(f32 u, f32 v, u8 page) {
+static vec2 process_tex_coords(f32 u, f32 v, u8 page) {
     u = u / 255.0f;
     v = (v + (page * 256)) / 1023.0f;
-    return (vec2_t){ u, v };
+    return (vec2){ u, v };
 }
 
 
@@ -204,10 +207,10 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
 
     // Textured quad vertices. Split into 2 triangles.
     for (int i = index; i < index + (P*2*3); i = i + 6) {
-        vec3_t a = read_position(f);
-        vec3_t b = read_position(f);
-        vec3_t c = read_position(f);
-        vec3_t d = read_position(f);
+        vec3 a = read_position(f);
+        vec3 b = read_position(f);
+        vec3 c = read_position(f);
+        vec3 d = read_position(f);
 
         // Triangle A
         mesh->vertices[i+0].position = a;
@@ -234,10 +237,10 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
 
     // Untextured quad vertices. Split into 2 triangles.
     for (int i = index; i < index + (R*2*3); i = i + 6) {
-        vec3_t a = read_position(f);
-        vec3_t b = read_position(f);
-        vec3_t c = read_position(f);
-        vec3_t d = read_position(f);
+        vec3 a = read_position(f);
+        vec3 b = read_position(f);
+        vec3 c = read_position(f);
+        vec3 d = read_position(f);
 
         // Triangle A
         mesh->vertices[i+0].position = a;
@@ -276,10 +279,10 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
 
     // Quad normals. Split into 2 triangles.
     for (int i = index; i < index + (P*2*3); i = i + 6) {
-        vec3_t a = read_normal(f);
-        vec3_t b = read_normal(f);
-        vec3_t c = read_normal(f);
-        vec3_t d = read_normal(f);
+        vec3 a = read_normal(f);
+        vec3 b = read_normal(f);
+        vec3 c = read_normal(f);
+        vec3 d = read_normal(f);
 
         // Triangle A
         mesh->vertices[i+0].normal = a;
@@ -308,9 +311,9 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
         f32 cu = read_u8(f);
         f32 cv = read_u8(f);
 
-        vec2_t a = process_tex_coords(au, av, page);
-        vec2_t b = process_tex_coords(bu, bv, page);
-        vec2_t c = process_tex_coords(cu, cv, page);
+        vec2 a = process_tex_coords(au, av, page);
+        vec2 b = process_tex_coords(bu, bv, page);
+        vec2 c = process_tex_coords(cu, cv, page);
 
         mesh->vertices[i+0].texcoords = a;
         mesh->vertices[i+0].palette = palette;
@@ -337,10 +340,10 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
         f32 du = read_u8(f);
         f32 dv = read_u8(f);
 
-        vec2_t a = process_tex_coords(au, av, page);
-        vec2_t b = process_tex_coords(bu, bv, page);
-        vec2_t c = process_tex_coords(cu, cv, page);
-        vec2_t d = process_tex_coords(du, dv, page);
+        vec2 a = process_tex_coords(au, av, page);
+        vec2 b = process_tex_coords(bu, bv, page);
+        vec2 c = process_tex_coords(cu, cv, page);
+        vec2 d = process_tex_coords(du, dv, page);
 
         // Triangle A
         mesh->vertices[i+0].texcoords = a;
@@ -368,26 +371,26 @@ void read_mesh(FILE *f, int sector, mesh_t *mesh) {
     return;
 }
 
-vec3_t mesh_center_transform(mesh_t *mesh) {
-    vec3_t vmin = {.X=FLT_MAX, .Y=FLT_MAX, .Z=FLT_MAX};
-    vec3_t vmax = {.X=FLT_MIN, .Y=FLT_MIN, .Z=FLT_MIN};
+vec3 mesh_center_transform(mesh_t *mesh) {
+    vec3 vmin = {.x=FLT_MAX, .y=FLT_MAX, .z=FLT_MAX};
+    vec3 vmax = {.x=FLT_MIN, .y=FLT_MIN, .z=FLT_MIN};
 
     for (u32 i = 0; i < mesh->num_vertices; i++) {
-        vec3_t p = mesh->vertices[i].position;
+        vec3 p = mesh->vertices[i].position;
 
-        vmin.X = fmin(p.X, vmin.X);
-        vmin.Y = fmin(p.Y, vmin.Y);
-        vmin.Z = fmin(p.Z, vmin.Z);
+        vmin.x = fmin(p.x, vmin.x);
+        vmin.y = fmin(p.y, vmin.y);
+        vmin.z = fmin(p.z, vmin.z);
 
-        vmax.X = fmax(p.X, vmax.X);
-        vmax.Y = fmax(p.Y, vmax.Y);
-        vmax.Z = fmax(p.Z, vmax.Z);
+        vmax.x = fmax(p.x, vmax.x);
+        vmax.y = fmax(p.y, vmax.y);
+        vmax.z = fmax(p.z, vmax.z);
     }
 
-    return (vec3_t){
-        .X = -(vmax.X + vmin.X) / 2.0,
-        .Y = -0.5, // maps already on 0.0. The -0.5 lowers it just a bit.
-        .Z = -(vmax.Z + vmin.Z) / 2.0,
+    return (vec3){
+        .x = -(vmax.x + vmin.x) / 2.0,
+        .y = -0.5, // maps already on 0.0. the -0.5 lowers it just a bit.
+        .z = -(vmax.z + vmin.z) / 2.0,
     };
 }
 
@@ -407,21 +410,21 @@ void read_palette(FILE *f, int sector, mesh_t *mesh) {
     fseek(f, intra_file_ptr, SEEK_CUR);
 
     for (int i = 0; i < 16 * 16 * 4; i = i + 4) {
-        vec4_t c = read_rgb15(f);
-        mesh->palette[i+0] = c.R;
-        mesh->palette[i+1] = c.G;
-        mesh->palette[i+2] = c.B;
-        mesh->palette[i+3] = c.A;
+        vec4 c = read_rgb15(f);
+        mesh->palette[i+0] = c.x;
+        mesh->palette[i+1] = c.y;
+        mesh->palette[i+2] = c.z;
+        mesh->palette[i+3] = c.w;
     }
 }
 
-vec4_t read_rgb15(FILE *f) {
+vec4 read_rgb15(FILE *f) {
         u16 val = read_u16(f);
         u8 a = val == 0 ? 0x00 : 0xFF;
         u8 b = (val & 0x7C00) >> 7; // 0b0111110000000000
         u8 g = (val & 0x03E0) >> 2; // 0b0000001111100000
         u8 r = (val & 0x001F) << 3; // 0b0000000000011111
-        return (vec4_t){r,g,b,a};
+        return (vec4){r,g,b,a};
 }
 
 void read_lights(FILE *f, int sector, mesh_t *mesh) {
@@ -437,22 +440,22 @@ void read_lights(FILE *f, int sector, mesh_t *mesh) {
     fseek(f, sector * SECTOR_LEN, SEEK_SET);
     fseek(f, intra_file_ptr, SEEK_CUR);
 
-    mesh->dir_lights[0].color.R = read_f1x3x12(f);
-    mesh->dir_lights[1].color.R = read_f1x3x12(f);
-    mesh->dir_lights[2].color.R = read_f1x3x12(f);
-    mesh->dir_lights[0].color.G = read_f1x3x12(f);
-    mesh->dir_lights[1].color.G = read_f1x3x12(f);
-    mesh->dir_lights[2].color.G = read_f1x3x12(f);
-    mesh->dir_lights[0].color.B = read_f1x3x12(f);
-    mesh->dir_lights[1].color.B = read_f1x3x12(f);
-    mesh->dir_lights[2].color.B = read_f1x3x12(f);
+    mesh->dir_lights[0].color.x = read_f1x3x12(f);
+    mesh->dir_lights[1].color.x = read_f1x3x12(f);
+    mesh->dir_lights[2].color.x = read_f1x3x12(f);
+    mesh->dir_lights[0].color.y = read_f1x3x12(f);
+    mesh->dir_lights[1].color.y = read_f1x3x12(f);
+    mesh->dir_lights[2].color.y = read_f1x3x12(f);
+    mesh->dir_lights[0].color.z = read_f1x3x12(f);
+    mesh->dir_lights[1].color.z = read_f1x3x12(f);
+    mesh->dir_lights[2].color.z = read_f1x3x12(f);
 
     mesh->dir_lights[0].position = read_position(f);
     mesh->dir_lights[1].position = read_position(f);
     mesh->dir_lights[2].position = read_position(f);
 
-    vec4_t c = read_rgb15(f);
-    mesh->ambient_light = (vec3_t){c.R, c.G, c.B};
+    vec4 c = read_rgb15(f);
+    mesh->ambient_light = (vec3){c.x, c.y, c.z};
 }
 
 void read_texture(FILE *f, int sector, mesh_t *mesh) {
@@ -572,7 +575,7 @@ f32 read_f1x3x12(FILE *f)
     return (f32)value / 4096.0;
 }
 
-vec3_t read_position(FILE *f)
+vec3 read_position(FILE *f)
 {
     f32 x = read_i16(f);
     f32 y = read_i16(f);
@@ -582,10 +585,10 @@ vec3_t read_position(FILE *f)
     y = -y / 100.0;
     z = -z / 100.0;
 
-    return (vec3_t){ x, y, z };
+    return (vec3){ x, y, z };
 }
 
-vec3_t read_normal(FILE *f)
+vec3 read_normal(FILE *f)
 {
     f32 x = read_f1x3x12(f);
     f32 y = read_f1x3x12(f);
@@ -595,5 +598,5 @@ vec3_t read_normal(FILE *f)
     y = -y;
     z = -z;
 
-    return (vec3_t){ x, y, z };
+    return (vec3){ x, y, z };
 }
