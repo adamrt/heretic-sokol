@@ -33,8 +33,6 @@ static void load_map(i32 map);
 
 static struct {
     f32 time;
-    b8 rotate;
-    f32  rotate_amt;
     i32 draw_mode;
 
     i32 mapnum;
@@ -84,9 +82,6 @@ static void init(void) {
         .longitude = 35.0f,
     });
 
-    g.rotate = false;
-    g.rotate_amt = 0.0f;
-
     g.draw_mode = 0;
     g.ambient_color = v3_new(1.0f, 1.0f, 1.0f);
     g.mapnum = 49;
@@ -132,9 +127,6 @@ static void frame(void) {
     });
 
     g.time += (f32)sapp_frame_duration();
-    if (g.rotate) {
-        g.rotate_amt += (f32)sapp_frame_duration() * 60.0;
-    }
 
     cam_update(&g.cam, sapp_width(), sapp_height());
 
@@ -149,7 +141,6 @@ static void frame(void) {
 
         // Vertex
         mat4_t model = m4_new(1.0f);
-        model = m4_mul(model, m4_rotate(angle_deg(g.rotate_amt), v3_new(0.0f, 1.0f, 0.0f)));
         model = m4_mul(model, m4_translate(g.mesh.center_transform));
         vs_basic_params_t vs_params = {
             .u_projection = g.cam.proj,
@@ -363,7 +354,6 @@ static void draw_ui(void) {
         igText("");
     }
     if (!igCollapsingHeader_TreeNodeFlags("Camera", 0)) {
-        igCheckbox("Rotate", &g.rotate);
         igSliderFloat("Latitude", &g.cam.latitude, -85.0f, 85.0f, "%0.2f", 0);
         igSliderFloat("Longitude", &g.cam.longitude, 0.0f, 360.0f, "%0.2f", 0);
         igText("");
