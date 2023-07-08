@@ -55,6 +55,8 @@ typedef struct {
     u32 num_vertices;
 
     u8 texture[TEXTURE_NUM_BYTES];
+    u8 texture_display[TEXTURE_NUM_BYTES];
+
     u8 palette[PALETTE_NUM_BYTES];
 
     light_t dir_lights[3];
