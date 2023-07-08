@@ -594,7 +594,6 @@ vec3 read_normal(FILE *f)
     f32 y = read_f1x3x12(f);
     f32 z = read_f1x3x12(f);
 
-    x =  x;
     y = -y;
     z = -z;
 
