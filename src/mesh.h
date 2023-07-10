@@ -27,6 +27,11 @@ enum Resource {
     ResourceEnd          = 0x3101,
 };
 
+enum Arrangment {
+  ArrangePrimary,
+  ArrangeSecondary,
+};
+
 enum Time {
   TimeDay,
   TimeNight,
@@ -35,7 +40,7 @@ enum Time {
 // record_t represents a GNS record.
 typedef struct {
     u16 sector;
-    u64 len;
+    u32 len;
     u16 type;
     u8  arrangement;
     u8  time;
@@ -58,8 +63,9 @@ typedef struct {
     vertex_t vertices[MAX_VERTS];
     u32 num_vertices;
 
-    u8 texture[TEXTURE_NUM_BYTES];
-    u8 texture_display[TEXTURE_NUM_BYTES];
+    u8 num_textures;
+    u8 textures[50][TEXTURE_NUM_BYTES];
+    u8 texture_displays[50][TEXTURE_NUM_BYTES];
 
     u8 palette[PALETTE_NUM_BYTES];
 

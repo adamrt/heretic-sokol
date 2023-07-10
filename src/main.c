@@ -28,6 +28,8 @@ static void cleanup(void);
 static void draw_ui(void);
 static void next_map(void);
 static void prev_map(void);
+static void next_tex(void);
+static void prev_tex(void);
 static void load_map(i32 map);
 
 static struct {
@@ -35,6 +37,7 @@ static struct {
     i32 draw_mode;
 
     i32 mapnum;
+    i32 texnum;
 
     camera_t cam;
     mesh_t mesh;
@@ -86,6 +89,7 @@ static void init(void) {
     g.draw_mode = 0;
     g.ambient_color = (vec3){1.0f, 1.0f, 1.0f};
     g.mapnum = 49;
+    g.texnum = 0;
 
     load_map(g.mapnum);
 
@@ -107,7 +111,12 @@ static void event(const sapp_event* ev) {
         if (ev->key_code == SAPP_KEYCODE_J) {
             prev_map();
         }
-
+        if (ev->key_code == SAPP_KEYCODE_P) {
+            next_tex();
+        }
+        if (ev->key_code == SAPP_KEYCODE_O) {
+            prev_tex();
+        }
     }
 
     keystate_handle_event(ev);
@@ -205,7 +214,7 @@ static void frame(void) {
 }
 
 static void load_map(i32 map) {
-    g.mesh = (mesh_t){0};
+    // g.mesh = (mesh_t){0};
 
     if (!read_map(map, &g.mesh)) {
         printf("failed to open map file\n");
@@ -270,7 +279,7 @@ static void load_map(i32 map) {
         .width = TEXTURE_WIDTH,
         .height = TEXTURE_HEIGHT,
         .data.subimage[0][0] = {
-            .ptr = g.mesh.texture,
+            .ptr = g.mesh.textures[g.texnum],
             .size = (size_t)(TEXTURE_NUM_BYTES),
         },
         .label = "map-texture"
@@ -282,7 +291,7 @@ static void load_map(i32 map) {
         .width = TEXTURE_WIDTH,
         .height = TEXTURE_HEIGHT,
         .data.subimage[0][0] = {
-            .ptr = g.mesh.texture_display,
+            .ptr = g.mesh.texture_displays[g.texnum],
             .size = (size_t)(TEXTURE_NUM_BYTES),
         },
         .label = "map-texture-scaled"
@@ -319,6 +328,8 @@ static void next_map(void) {
     if (g.mapnum > 119) {
         g.mapnum = 1;
     }
+    memset(g.mesh.textures, 0, sizeof(u8) * 25*TEXTURE_NUM_BYTES);
+    g.mesh.num_textures = 0;
     load_map(g.mapnum);
 }
 
@@ -327,7 +338,73 @@ static void prev_map(void) {
     if (g.mapnum < 1) {
         g.mapnum = 119;
     }
+    memset(g.mesh.textures, 0, sizeof(u8) * 25*TEXTURE_NUM_BYTES);
+    g.mesh.num_textures = 0;
     load_map(g.mapnum);
+}
+
+static void next_tex(void) {
+    g.texnum++;
+    if (g.texnum == g.mesh.num_textures-1) {
+        g.texnum = 0;
+    }
+
+    sg_destroy_image(g.bind_object.fs_images[SLOT_u_tex]);
+    g.bind_object.fs_images[SLOT_u_tex] = sg_alloc_image();
+    sg_init_image(g.bind_object.fs_images[SLOT_u_tex], &(sg_image_desc){
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .width = TEXTURE_WIDTH,
+        .height = TEXTURE_HEIGHT,
+        .data.subimage[0][0] = {
+            .ptr = g.mesh.textures[g.texnum],
+            .size = (size_t)(TEXTURE_NUM_BYTES),
+        },
+        .label = "map-texture"
+    });
+
+    sg_destroy_image(g.maptex);
+    g.maptex = sg_make_image(&(sg_image_desc){
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .width = TEXTURE_WIDTH,
+        .height = TEXTURE_HEIGHT,
+        .data.subimage[0][0] = {
+            .ptr = g.mesh.texture_displays[g.texnum],
+            .size = (size_t)(TEXTURE_NUM_BYTES),
+        },
+        .label = "map-texture-scaled"
+    });
+}
+
+static void prev_tex(void) {
+    g.texnum--;
+    if (g.texnum < 0) {
+        g.texnum = g.mesh.num_textures-1;
+    }
+
+    sg_destroy_image(g.bind_object.fs_images[SLOT_u_tex]);
+    g.bind_object.fs_images[SLOT_u_tex] = sg_alloc_image();
+    sg_init_image(g.bind_object.fs_images[SLOT_u_tex], &(sg_image_desc){
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .width = TEXTURE_WIDTH,
+        .height = TEXTURE_HEIGHT,
+        .data.subimage[0][0] = {
+            .ptr = g.mesh.textures[g.texnum],
+            .size = (size_t)(TEXTURE_NUM_BYTES),
+        },
+        .label = "map-texture"
+    });
+
+    sg_destroy_image(g.maptex);
+    g.maptex = sg_make_image(&(sg_image_desc){
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .width = TEXTURE_WIDTH,
+        .height = TEXTURE_HEIGHT,
+        .data.subimage[0][0] = {
+            .ptr = g.mesh.texture_displays[g.texnum],
+            .size = (size_t)(TEXTURE_NUM_BYTES),
+        },
+        .label = "map-texture-scaled"
+    });
 }
 
 static void draw_ui(void) {
@@ -337,7 +414,9 @@ static void draw_ui(void) {
     if (!igCollapsingHeader_TreeNodeFlags("Palette", 0)) {
         igImage((ImTextureID)(uintptr_t)g.mappalette.id, (ImVec2){256,256}, (ImVec2){0.0,0.0}, (ImVec2){1.0,1.0}, (ImVec4){1,1,1,1.0}, (ImVec4){1,1,1,1.0});
     }
-    if (!igCollapsingHeader_TreeNodeFlags("Texture", 0)) {
+    char title[20];
+    sprintf(title, "Texture %d/%d", g.texnum, g.mesh.num_textures-1);
+    if (!igCollapsingHeader_TreeNodeFlags(title, 0)) {
         igImage((ImTextureID)(uintptr_t)g.maptex.id, (ImVec2){256,1024}, (ImVec2){0.0,0.0}, (ImVec2){1.0,1.0}, (ImVec4){1,1,1,1.0}, (ImVec4){1,1,1,1.0});
     }
     igEnd();

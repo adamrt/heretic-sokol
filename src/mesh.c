@@ -77,7 +77,17 @@ b8 read_map(int map, mesh_t* mesh) {
     return true;
 }
 
+void record_print(int i, record_t r) {
+    char type[5];
+    if (r.type == ResourceTexture) { sprintf(type, "Tex"); }
+    else if (r.type == ResourceMeshPrimary) { sprintf(type, "Mesh"); }
+    else if (r.type == ResourceMeshAlt) { sprintf(type, "Alt"); }
+    else {sprintf(type, "Duno");}
+    printf("%d\t%s\t%d\t%d\t%d\t%d\t%d\n", i, type, r.arrangement, r.time, r.weather, r.sector, r.len);
+}
+
 b8 read_records(file_t* f, record_t *out_records, u16 *out_num_records) {
+    printf("##\ttype\tarr\ttime\twthr\tsec\tlen\n");
     while (true) {
         u16 header_unknown = read_u16(f);
         if (header_unknown != 0x22 && header_unknown != 0x30 && header_unknown != 0x70) {
@@ -364,24 +374,25 @@ b8 read_texture(file_t *f, mesh_t *mesh) {
         u8 raw_pixel = raw_pixels[i];
         u8 right = ((raw_pixel & 0x0F));
         u8 left  = ((raw_pixel & 0xF0) >> 4);
-        mesh->texture[j+0] = right;
-        mesh->texture[j+1] = right;
-        mesh->texture[j+2] = right;
-        mesh->texture[j+3] = right;
-        mesh->texture[j+4] = left;
-        mesh->texture[j+5] = left;
-        mesh->texture[j+6] = left;
-        mesh->texture[j+7] = left;
+        mesh->textures[mesh->num_textures][j+0] = right;
+        mesh->textures[mesh->num_textures][j+1] = right;
+        mesh->textures[mesh->num_textures][j+2] = right;
+        mesh->textures[mesh->num_textures][j+3] = right;
+        mesh->textures[mesh->num_textures][j+4] = left;
+        mesh->textures[mesh->num_textures][j+5] = left;
+        mesh->textures[mesh->num_textures][j+6] = left;
+        mesh->textures[mesh->num_textures][j+7] = left;
     }
 
     // Scaling the RGB values from 0-16 to 0-255 so they are visible in ImGUI.
     for (int i = 0; i < TEXTURE_NUM_BYTES; i = i + 4) {
-        mesh->texture_display[i+0] = mesh->texture[i+0] * 17;
-        mesh->texture_display[i+1] = mesh->texture[i+1] * 17;
-        mesh->texture_display[i+2] = mesh->texture[i+2] * 17;
-        mesh->texture_display[i+3] = 255;
+        mesh->texture_displays[mesh->num_textures][i+0] = mesh->textures[mesh->num_textures][i+0] * 17;
+        mesh->texture_displays[mesh->num_textures][i+1] = mesh->textures[mesh->num_textures][i+1] * 17;
+        mesh->texture_displays[mesh->num_textures][i+2] = mesh->textures[mesh->num_textures][i+2] * 17;
+        mesh->texture_displays[mesh->num_textures][i+3] = 255;
     }
 
+    mesh->num_textures++;
     return true;
 }
 
@@ -422,7 +433,7 @@ vec4 read_rgb15(file_t *f) {
         return (vec4){r,g,b,a};
 }
 
-// process_tex_coords has two functions:
+// process_tex_s[mesh->num_textures]coords has two functions:
 //
 // 1. Update the v coordinate to the specific page of the texture. FFT
 //    Textures have 4 pages (256x1024) and the original V specifies
