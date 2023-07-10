@@ -32,7 +32,7 @@ target_link_libraries(sokol PUBLIC cimgui)
 # SYSTEM keeps compiler flags from running against sokol
 target_include_directories(sokol SYSTEM PUBLIC lib/sokol lib)
 
-add_executable(heretic src/main.c src/mesh.c src/keystate.c src/maths.c)
+add_executable(heretic src/main.c src/mesh.c src/keystate.c src/maths.c src/bin.c)
 
 file(GLOB_RECURSE SRC_DIR "src/*.c" "src/*.h")
 set_source_files_properties(
