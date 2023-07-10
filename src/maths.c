@@ -19,6 +19,14 @@ inline vec3 vec3_mulf(vec3 v, f32 f) {
     };
 }
 
+inline vec3 vec3_divf(vec3 v, f32 f) {
+    return (vec3){
+        v.x / f,
+        v.y / f,
+        v.z / f
+    };
+}
+
 inline f32 vec3_length(vec3 v) {
     return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z);
 }

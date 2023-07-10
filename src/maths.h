@@ -11,10 +11,11 @@ typedef struct { f32 x, y, z, w; } vec4;
 typedef struct { f32 data[16]; } mat4;
 
 vec3 vec3_add(vec3 a, vec3 b);
-vec3 vec3_cross(vec3 a, vec3 b);
 vec3 vec3_mulf(vec3 v, f32 f);
+vec3 vec3_divf(vec3 a, f32 f);
 vec3 vec3_normalized(vec3 v);
 void vec3_normalize(vec3* v);
+vec3 vec3_cross(vec3 a, vec3 b);
 f32 vec3_dot(vec3 a, vec3 b);
 f32 vec3_length(vec3 v);
 
