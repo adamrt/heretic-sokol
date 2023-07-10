@@ -11,5 +11,5 @@ shader: sokol-shdc
 run: build shader
 	cd build && cmake .. && cd .. && cmake --build build && ./build/heretic
 
-release:
+release: build shader
 	cd build && cmake -DCMAKE_BUILD_TYPE=MinSizeRel .. && cd .. && cmake --build build && ./build/heretic
