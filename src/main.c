@@ -183,7 +183,11 @@ static void frame(void) {
         // Vertex
         for (i32 i = 0; i < 3; i++) {
             mat4 model = mat4_identity();
-            model = mat4_mul(model, mat4_translation(g.mesh.dir_lights[i].position));
+            // This makes the light cubes appear closer, but doesn't
+            // affect the lighting calculations the the other fragment
+            // shader. Its just nice to see the lights.
+            vec3 closer_position = vec3_divf(g.mesh.dir_lights[i].position, 7.0f);
+            model = mat4_mul(model, mat4_translation(closer_position));
             vs_params.model = model;
             sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_light_params, &SG_RANGE(vs_params));
 
