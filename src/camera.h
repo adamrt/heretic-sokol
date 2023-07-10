@@ -72,7 +72,7 @@ static void cam_orbit(camera_t* cam, f32 dx, f32 dy) {
     if (cam->longitude > 360.0f) {
         cam->longitude -= 360.0f;
     }
-    cam->latitude = clamp(CAMERA_MIN_LAT, cam->latitude + dy, CAMERA_MAX_LAT);
+    cam->latitude = clamp(cam->latitude + dy, CAMERA_MIN_LAT, CAMERA_MAX_LAT);
 }
 
 // feed zoom (mouse wheel) input

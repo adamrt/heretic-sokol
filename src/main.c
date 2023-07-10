@@ -79,10 +79,7 @@ static void init(void) {
     });
     simgui_setup(&(simgui_desc_t){ 0 });
 
-    cam_init(&g.cam, &(camera_desc_t){
-        .latitude = 30.0f,
-        .longitude = 35.0f,
-    });
+    cam_init(&g.cam, &(camera_desc_t){0});
 
     g.draw_mode = 0;
     g.ambient_color = (vec3){1.0f, 1.0f, 1.0f};
