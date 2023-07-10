@@ -30,10 +30,10 @@ target_link_libraries(sokol PUBLIC Threads::Threads)
 
 target_link_libraries(sokol PUBLIC cimgui)
 # SYSTEM keeps compiler flags from running against sokol
-target_include_directories(sokol SYSTEM PUBLIC lib/sokol lib)
+target_include_directories(sokol SYSTEM PUBLIC lib/sokol)
 
 add_executable(heretic src/main.c src/mesh.c src/keystate.c src/maths.c src/bin.c)
-
+target_include_directories(heretic SYSTEM PUBLIC lib/stb)
 file(GLOB_RECURSE SRC_DIR "src/*.c" "src/*.h")
 set_source_files_properties(
   ${SRC_DIR}
