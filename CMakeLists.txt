@@ -38,7 +38,7 @@ file(GLOB_RECURSE SRC_DIR "src/*.c" "src/*.h")
 set_source_files_properties(
   ${SRC_DIR}
   PROPERTIES
-  COMPILE_FLAGS "-Wall -Wextra -Wpedantic -Werror -Wno-missing-braces"
+  COMPILE_FLAGS "-Wall -Wextra -Wpedantic -Werror -Werror=vla -Wno-missing-braces"
 )
 
 target_link_libraries(heretic sokol)
