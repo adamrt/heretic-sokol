@@ -203,7 +203,7 @@ static void frame(void) {
 static void load_map(i32 map) {
     g.mesh = (mesh_t){0};
 
-    if (!mesh_from_map(map, &g.mesh)) {
+    if (!read_map(map, &g.mesh)) {
         printf("failed to open map file\n");
         exit(1);
     }

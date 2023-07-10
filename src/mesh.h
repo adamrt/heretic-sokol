@@ -1,20 +1,15 @@
 #pragma once
 
-#include <stdio.h>
 #include <string.h>
 
+#include "bin.h"
 #include "defines.h"
 #include "maths.h"
 
+#define GNS_MAX_SIZE   2388
+#define RECORD_MAX_NUM 100
+
 #define MAX_VERTS 5000
-
-#define MAP_SECTOR 33032
-#define SECTOR_SIZE 2048
-#define SECTOR_RAW_SIZE 2352
-#define SECTOR_HEADER_SIZE 24
-
-#define SECTOR_LEN 2048
-#define MAX_GNS_RECORDS 100
 
 #define TEXTURE_WIDTH 256
 #define TEXTURE_HEIGHT 1024
@@ -24,31 +19,35 @@
 
 #define PALETTE_NUM_BYTES (16 * 16 * 4)
 
-enum FFTRecord {
-    FFTRecordTexture = 0x1701,
-    FFTRecordMeshPrimary = 0x2E01,
-    FFTRecordMeshOverride = 0x2F01,
-    FFTRecordMeshAlt = 0x3001,
-    FFTRecordEnd = 0x3101,
+enum Resource {
+    ResourceTexture      = 0x1701,
+    ResourceMeshPrimary  = 0x2E01,
+    ResourceMeshOverride = 0x2F01,
+    ResourceMeshAlt      = 0x3001,
+    ResourceEnd          = 0x3101,
 };
+
+enum Time {
+  TimeDay,
+  TimeNight,
+};
+
+// record_t represents a GNS record.
+typedef struct {
+    u16 sector;
+    u64 len;
+    u16 type;
+    u8  arrangement;
+    u8  time;
+    u8  weather;
+} record_t;
 
 typedef struct {
     vec3 position;
     vec3 normal;
     vec2 texcoords;
-    f32    palette;
+    f32  palette;
 } vertex_t;
-
-typedef struct {
-    u16 file_type;
-    u16 file_sector;
-} gns_record_t;
-
-typedef struct {
-    gns_record_t records[MAX_GNS_RECORDS];
-    i8 num_records;
-    b8 is_valid;
-} gns_t;
 
 typedef struct {
     vec3 position;
@@ -76,24 +75,14 @@ typedef struct {
     b8 is_texture_valid;
 } mesh_t;
 
-b8 mesh_from_map(int map, mesh_t *mesh);
+b8 read_map(int mapnum, mesh_t *out_mesh);
+b8 read_records(file_t *f, record_t *out_records, u16 *out_num_records);
+b8 read_mesh(file_t *f, mesh_t *out_mesh);
+b8 read_texture(file_t *f, mesh_t *out_mesh);
+b8 read_palette(file_t *f, mesh_t *out_mesh);
+b8 read_lights(file_t *f, mesh_t *out_mesh);
 
-void read_gns(FILE* f, int sector, gns_t *gns);
-void read_mesh(FILE *f, int sector, mesh_t *mesh);
-void read_texture(FILE *f, int sector, mesh_t *mesh);
-void read_palette(FILE *f, int sector, mesh_t *mesh);
-void read_lights(FILE *f, int sector, mesh_t *mesh);
-vec4 read_rgb15(FILE *f);
-
-vec3 mesh_center_transform(mesh_t *mesh);
-
-vec3 read_position(FILE *f);
-vec3 read_normal(FILE *f);
-
-u8  read_u8(FILE *f);
-u16 read_u16(FILE *f);
-u32 read_u32(FILE *f);
-i8  read_i8(FILE *f);
-i16 read_i16(FILE *f);
-i32 read_i32(FILE *f);
-float read_f1x3x12(FILE *f);
+f32  read_f1x3x12(file_t *f);
+vec3 read_position(file_t *f);
+vec3 read_normal(file_t *f);
+vec4 read_rgb15(file_t *f);
