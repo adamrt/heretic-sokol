@@ -350,8 +350,7 @@ b8 read_lights(file_t *f, mesh_t *mesh) {
     mesh->dir_lights[1].position = read_position(f);
     mesh->dir_lights[2].position = read_position(f);
 
-    vec4 c = read_rgb15(f);
-    mesh->ambient_light = (vec3){c.x, c.y, c.z};
+    mesh->ambient_light = read_rgb8(f);
 
     return true;
 }
@@ -420,6 +419,13 @@ vec4 read_rgb15(file_t *f) {
         u8 g = (val & 0x03E0) >> 2; // 0b0000001111100000
         u8 r = (val & 0x001F) << 3; // 0b0000000000011111
         return (vec4){r,g,b,a};
+}
+
+vec3 read_rgb8(file_t *f) {
+    f32 r = (f32)read_u8(f) / 255.0f;
+    f32 g = (f32)read_u8(f) / 255.0f;
+    f32 b = (f32)read_u8(f) / 255.0f;
+    return (vec3){ r, g, b };
 }
 
 // process_tex_coords has two functions:

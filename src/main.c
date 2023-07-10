@@ -43,6 +43,7 @@ static struct {
     sg_image maptex;
     sg_image mappalette;
 
+    // FIXME: ambient_color is replaced by mesh.ambient_light
     vec3 ambient_color;
 
     vec4 clear_color;

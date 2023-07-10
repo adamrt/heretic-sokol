@@ -86,3 +86,4 @@ f32  read_f1x3x12(file_t *f);
 vec3 read_position(file_t *f);
 vec3 read_normal(file_t *f);
 vec4 read_rgb15(file_t *f);
+vec3 read_rgb8(file_t *f);
