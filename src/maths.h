@@ -18,6 +18,7 @@ void vec3_normalize(vec3* v);
 vec3 vec3_cross(vec3 a, vec3 b);
 f32 vec3_dot(vec3 a, vec3 b);
 f32 vec3_length(vec3 v);
+vec4 vec3_to_vec4(vec3 v);
 
 mat4 mat4_identity(void);
 mat4 mat4_mul(mat4 a, mat4 b);

@@ -160,10 +160,8 @@ static void frame(void) {
 
         fs_dir_lights_t fs_lights = {0};
         for (i32 i = 0; i < 3; i++) {
-            vec3 c = g.mesh.dir_lights[i].color;
-            vec3 p = g.mesh.dir_lights[i].position;
-            fs_lights.color[i] = (vec4){c.x, c.y, c.z, 255.0};
-            fs_lights.position[i] = (vec4){p.x, p.y, p.z, 255.0};
+            fs_lights.color[i] = vec3_to_vec4(g.mesh.dir_lights[i].color);
+            fs_lights.position[i] = vec3_to_vec4(g.mesh.dir_lights[i].position);
         }
         sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_dir_lights, &SG_RANGE(fs_lights));
 

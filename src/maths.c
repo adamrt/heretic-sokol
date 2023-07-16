@@ -58,6 +58,10 @@ inline vec3 vec3_cross(vec3 a, vec3 b) {
         a.x * b.y - a.y * b.x};
 }
 
+inline vec4 vec3_to_vec4(vec3 v) {
+    return (vec4){v.x, v.y, v.z, 1.0f};
+}
+
 
 inline mat4 mat4_identity(void) {
     mat4 result;
