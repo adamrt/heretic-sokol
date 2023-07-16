@@ -343,7 +343,7 @@ static void draw_ui(void) {
     igEnd();
 
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
-    igSetNextWindowSize((ImVec2){480, 550}, ImGuiCond_Once);
+    igSetNextWindowSize((ImVec2){350, 550}, ImGuiCond_Once);
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
     char map_title[10];
     sprintf(map_title, "Map %d", g.mapnum);
