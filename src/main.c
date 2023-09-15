@@ -329,16 +329,24 @@ static void prev_map(void) {
 }
 
 static void draw_ui(void) {
-    igSetNextWindowPos((ImVec2){sapp_width()-300, 10}, ImGuiCond_Once, (ImVec2){0,0});
-    igSetNextWindowSize((ImVec2){288, 731}, ImGuiCond_Once);
-    igBegin("Graphics", 0, ImGuiWindowFlags_None);
-    if (!igCollapsingHeader_TreeNodeFlags("Palette", 0)) {
-        igImage((ImTextureID)(uintptr_t)g.mappalette.id, (ImVec2){256,256}, (ImVec2){0.0,0.0}, (ImVec2){1.0,1.0}, (ImVec4){1,1,1,1.0}, (ImVec4){1,1,1,1.0});
-    }
-    if (!igCollapsingHeader_TreeNodeFlags("Texture", 0)) {
+    {
+        igSetNextWindowPos((ImVec2){sapp_width()-300, 10}, ImGuiCond_Once, (ImVec2){0,0});
+        igSetNextWindowSize((ImVec2){275, 1063}, ImGuiCond_Once);
+
+        igBegin("Texture", 0, ImGuiWindowFlags_None);
         igImage((ImTextureID)(uintptr_t)g.maptex.id, (ImVec2){256,1024}, (ImVec2){0.0,0.0}, (ImVec2){1.0,1.0}, (ImVec4){1,1,1,1.0}, (ImVec4){1,1,1,1.0});
+        igEnd();
     }
-    igEnd();
+
+    {
+        igSetNextWindowPos((ImVec2){sapp_width()-600, 10}, ImGuiCond_Once, (ImVec2){0,0});
+        igSetNextWindowSize((ImVec2){275, 293}, ImGuiCond_Once);
+
+        igBegin("Palette", 0, ImGuiWindowFlags_None);
+        igImage((ImTextureID)(uintptr_t)g.mappalette.id, (ImVec2){256,256}, (ImVec2){0.0,0.0}, (ImVec2){1.0,1.0}, (ImVec4){1,1,1,1.0}, (ImVec4){1,1,1,1.0});
+        igEnd();
+    }
+
 
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){350, 550}, ImGuiCond_Once);
