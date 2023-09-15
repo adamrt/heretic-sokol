@@ -90,10 +90,6 @@ static void init(void) {
     load_map(g.mapnum);
 
     g.clear_color = (vec4){ 0.2f, 0.3f, 0.3f, 1.0f };
-
-    // initial clear color
-    g.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
-    g.pass_action.colors[0].clear_value = (sg_color){g.clear_color.x, g.clear_color.y, g.clear_color.z, g.clear_color.w};
 }
 
 static void event(const sapp_event* ev) {
@@ -121,6 +117,11 @@ static void event(const sapp_event* ev) {
 }
 
 static void frame(void) {
+    // clear color
+    g.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR; // Only necessary once
+    g.pass_action.colors[0].clear_value = (sg_color){g.clear_color.x, g.clear_color.y, g.clear_color.z, g.clear_color.w};
+
+
     simgui_new_frame(&(simgui_frame_desc_t){
         .width = sapp_width(),
         .height = sapp_height(),
