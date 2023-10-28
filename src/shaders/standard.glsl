@@ -55,8 +55,7 @@ out vec4 frag_color;
 void main()
 {
     // Ambient Light
-    float ambientStrength = 0.2;
-    vec4 ambient = ambientStrength * vec4(u_ambient_color, 1.0);
+    vec4 ambient = vec4(u_ambient_color, 1.0);
 
     vec3 norm = normalize(v_normal);
 
