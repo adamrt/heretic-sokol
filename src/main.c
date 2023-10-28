@@ -43,9 +43,6 @@ static struct {
     sg_image maptex;
     sg_image mappalette;
 
-    // FIXME: ambient_color is replaced by mesh.ambient_light
-    vec3 ambient_color;
-
     vec4 clear_color;
 
     sg_shader basic_shader;
@@ -82,7 +79,6 @@ static void init(void) {
     cam_init(&g.cam, &(camera_desc_t){0});
 
     g.draw_mode = 0;
-    g.ambient_color = (vec3){1.0f, 1.0f, 1.0f};
     g.mapnum = 49;
 
     load_map(g.mapnum);
@@ -153,7 +149,7 @@ static void frame(void) {
         // Fragment
         fs_basic_params_t fs_params = {
             .u_draw_mode = g.draw_mode,
-            .u_ambient_color = g.ambient_color,
+            .u_ambient_color = g.mesh.ambient_light_color,
         };
         sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_basic_params, &SG_RANGE(fs_params));
 
@@ -372,7 +368,7 @@ static void draw_ui(void) {
 
     if (!igCollapsingHeader_TreeNodeFlags("Lights", 0)) {
         igSeparatorText("Ambient");
-        igColorEdit3("Color", (f32*)&g.ambient_color, ImGuiColorEditFlags_None);
+        igColorEdit3("Color", (f32*)&g.mesh.ambient_light_color, ImGuiColorEditFlags_None);
         for (i32 i = 0; i < 3; i++) {
             igPushID_Int(i);
             char title[10];

@@ -350,7 +350,7 @@ b8 read_lights(file_t *f, mesh_t *mesh) {
     mesh->dir_lights[1].position = read_position(f);
     mesh->dir_lights[2].position = read_position(f);
 
-    mesh->ambient_light = read_rgb8(f);
+    mesh->ambient_light_color = read_rgb8(f);
 
     return true;
 }

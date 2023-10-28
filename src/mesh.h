@@ -64,7 +64,7 @@ typedef struct {
     u8 palette[PALETTE_NUM_BYTES];
 
     light_t dir_lights[3];
-    vec3 ambient_light;
+    vec3 ambient_light_color;
     vec3 background_top;
     vec3 background_bottom;
 
