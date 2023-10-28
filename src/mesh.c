@@ -306,6 +306,7 @@ b8 read_mesh(file_t *f, mesh_t *mesh) {
 
     read_palette(f, mesh);
     read_lights(f, mesh);
+    read_background(f, mesh);
 
     mesh->center_transform = mesh_center_transform(mesh);
 
@@ -352,6 +353,12 @@ b8 read_lights(file_t *f, mesh_t *mesh) {
 
     mesh->ambient_light_color = read_rgb8(f);
 
+    return true;
+}
+
+b8 read_background(file_t *f, mesh_t *mesh) {
+    mesh->background_top = read_rgb8(f);
+    mesh->background_top = read_rgb8(f);
     return true;
 }
 

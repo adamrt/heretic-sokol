@@ -81,6 +81,7 @@ b8 read_mesh(file_t *f, mesh_t *out_mesh);
 b8 read_texture(file_t *f, mesh_t *out_mesh);
 b8 read_palette(file_t *f, mesh_t *out_mesh);
 b8 read_lights(file_t *f, mesh_t *out_mesh);
+b8 read_background(file_t *f, mesh_t *out_mesh);
 
 f32  read_f1x3x12(file_t *f);
 vec3 read_position(file_t *f);
