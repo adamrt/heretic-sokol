@@ -1,5 +1,5 @@
 sokol-shdc:
-	wget https://github.com/floooh/sokol-tools-bin/raw/master/bin/linux/sokol-shdc
+	wget https://github.com/floooh/sokol-tools-bin/raw/6c8fc754ad73bf0db759ae44b224093290e5b26e/bin/linux/sokol-shdc
 	chmod +x sokol-shdc
 
 build:

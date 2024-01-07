@@ -13,7 +13,7 @@ static vec2 process_tex_coords(f32 u, f32 v, u8 page);
 static vec3 mesh_center_transform(mesh_t *mesh);
 
 b8 read_map(int map, mesh_t* mesh) {
-    char *filename = "/home/adam/media/emu/fft.bin";
+    char *filename = "/home/adam/sync/emu/fft.bin";
     FILE *f = fopen(filename, "r");
     if (f == NULL) {
         printf("failed to open %s\n", filename);
