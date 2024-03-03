@@ -385,14 +385,6 @@ b8 read_texture(file_t* f, mesh_t* mesh)
         mesh->texture[j + 7] = left;
     }
 
-    // Scaling the RGB values from 0-16 to 0-255 so they are visible in ImGUI.
-    for (int i = 0; i < TEXTURE_NUM_BYTES; i = i + 4) {
-        mesh->texture_display[i + 0] = mesh->texture[i + 0] * 17;
-        mesh->texture_display[i + 1] = mesh->texture[i + 1] * 17;
-        mesh->texture_display[i + 2] = mesh->texture[i + 2] * 17;
-        mesh->texture_display[i + 3] = 255;
-    }
-
     return true;
 }
 

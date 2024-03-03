@@ -40,10 +40,6 @@ static struct {
     camera_t cam;
     mesh_t mesh;
 
-    // display version of the texture (scaled rgb);
-    sg_image maptex;
-    sg_image mappalette;
-
     vec4 clear_color;
 
     sg_shader basic_shader;
@@ -270,18 +266,6 @@ static void load_map(i32 map)
             .label = "map-texture",
         });
 
-    sg_destroy_image(g.maptex);
-    g.maptex = sg_make_image(&(sg_image_desc) {
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .width = TEXTURE_WIDTH,
-        .height = TEXTURE_HEIGHT,
-        .data.subimage[0][0] = {
-            .ptr = g.mesh.texture_display,
-            .size = (size_t)(TEXTURE_NUM_BYTES),
-        },
-        .label = "map-texture-scaled",
-    });
-
     sg_destroy_image(g.bind_object.fs_images[SLOT_u_palette]);
     g.bind_object.fs_images[SLOT_u_palette] = sg_alloc_image();
     sg_init_image(g.bind_object.fs_images[SLOT_u_palette],
@@ -294,19 +278,6 @@ static void load_map(i32 map)
                 .size = (size_t)(PALETTE_NUM_BYTES),
             },
             .label = "palette-texture",
-        });
-
-    sg_destroy_image(g.mappalette);
-    g.mappalette = sg_make_image(
-        &(sg_image_desc) {
-            .pixel_format = SG_PIXELFORMAT_RGBA8,
-            .width = 16,
-            .height = 16,
-            .data.subimage[0][0] = {
-                .ptr = g.mesh.palette,
-                .size = (size_t)(PALETTE_NUM_BYTES),
-            },
-            .label = "palette-texture-squared",
         });
 }
 
@@ -330,24 +301,6 @@ static void prev_map(void)
 
 static void draw_ui(void)
 {
-    {
-        igSetNextWindowPos((ImVec2) { sapp_width() - 300, 10 }, ImGuiCond_Once, (ImVec2) { 0, 0 });
-        igSetNextWindowSize((ImVec2) { 275, 1063 }, ImGuiCond_Once);
-
-        igBegin("Texture", 0, ImGuiWindowFlags_None);
-        igImage((ImTextureID)(uintptr_t)g.maptex.id, (ImVec2) { 256, 1024 }, (ImVec2) { 0.0, 0.0 }, (ImVec2) { 1.0, 1.0 }, (ImVec4) { 1, 1, 1, 1.0 }, (ImVec4) { 1, 1, 1, 1.0 });
-        igEnd();
-    }
-
-    {
-        igSetNextWindowPos((ImVec2) { sapp_width() - 600, 10 }, ImGuiCond_Once, (ImVec2) { 0, 0 });
-        igSetNextWindowSize((ImVec2) { 275, 293 }, ImGuiCond_Once);
-
-        igBegin("Palette", 0, ImGuiWindowFlags_None);
-        igImage((ImTextureID)(uintptr_t)g.mappalette.id, (ImVec2) { 256, 256 }, (ImVec2) { 0.0, 0.0 }, (ImVec2) { 1.0, 1.0 }, (ImVec4) { 1, 1, 1, 1.0 }, (ImVec4) { 1, 1, 1, 1.0 });
-        igEnd();
-    }
-
     igSetNextWindowPos((ImVec2) { 10, 10 }, ImGuiCond_Once, (ImVec2) { 0, 0 });
     igSetNextWindowSize((ImVec2) { 350, 550 }, ImGuiCond_Once);
     igBegin("Heretic", 0, ImGuiWindowFlags_None);
