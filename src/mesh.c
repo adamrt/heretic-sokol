@@ -12,7 +12,7 @@
 static vec2 process_tex_coords(f32 u, f32 v, u8 page);
 static vec3 mesh_center_transform(mesh_t* mesh);
 
-b8 read_map(int map, mesh_t* mesh)
+bool read_map(int map, mesh_t* mesh)
 {
     char* filename = "/home/adam/sync/emu/fft.bin";
     FILE* f = fopen(filename, "r");
@@ -78,7 +78,7 @@ b8 read_map(int map, mesh_t* mesh)
     return true;
 }
 
-b8 read_records(file_t* f, record_t* out_records, u16* out_num_records)
+bool read_records(file_t* f, record_t* out_records, u16* out_num_records)
 {
     while (true) {
         u16 header_unknown = read_u16(f);
@@ -120,7 +120,7 @@ b8 read_records(file_t* f, record_t* out_records, u16* out_num_records)
     }
 }
 
-b8 read_mesh(file_t* f, mesh_t* mesh)
+bool read_mesh(file_t* f, mesh_t* mesh)
 {
     // 0x40 is always the location of the primary mesh pointer.
     // 0xC4 is always the primary mesh pointer.
@@ -317,7 +317,7 @@ b8 read_mesh(file_t* f, mesh_t* mesh)
 }
 
 // 16 palettes of 16 colors of 4 bytes
-b8 read_palette(file_t* f, mesh_t* mesh)
+bool read_palette(file_t* f, mesh_t* mesh)
 {
     f->offset = 0x44;
     u32 intra_file_ptr = read_u32(f);
@@ -334,7 +334,7 @@ b8 read_palette(file_t* f, mesh_t* mesh)
     return true;
 }
 
-b8 read_lights(file_t* f, mesh_t* mesh)
+bool read_lights(file_t* f, mesh_t* mesh)
 {
     f->offset = 0x64;
     u32 intra_file_ptr = read_u32(f);
@@ -359,14 +359,14 @@ b8 read_lights(file_t* f, mesh_t* mesh)
     return true;
 }
 
-b8 read_background(file_t* f, mesh_t* mesh)
+bool read_background(file_t* f, mesh_t* mesh)
 {
     mesh->background_top = read_rgb8(f);
     mesh->background_top = read_rgb8(f);
     return true;
 }
 
-b8 read_texture(file_t* f, mesh_t* mesh)
+bool read_texture(file_t* f, mesh_t* mesh)
 {
     u8 raw_pixels[TEXTURE_RAW_SIZE];
     memcpy(&raw_pixels, f, TEXTURE_RAW_SIZE * sizeof(u8));

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 #define STATIC_ASSERT _Static_assert
 
 typedef signed char i8;
@@ -14,10 +16,6 @@ typedef unsigned long long u64;
 
 typedef float f32;
 typedef double f64;
-
-typedef _Bool b8;
-#define true 1
-#define false 0
 
 STATIC_ASSERT(sizeof(i8) == 1, "Expected i8 to be 1 byte.");
 STATIC_ASSERT(sizeof(i16) == 2, "Expected i16 to be 2 bytes.");

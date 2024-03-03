@@ -6,19 +6,19 @@
 #include "bin.h"
 
 // read_sector reads a sector to `out_bytes`.
-static b8 read_sector(FILE* f, i32 sector, u8* out_bytes)
+static bool read_sector(FILE* f, i32 sector, u8* out_bytes)
 {
     i32 seek_to = (sector * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
     if (fseek(f, seek_to, SEEK_SET) != 0) {
         return false;
     }
     size_t n = fread(out_bytes, sizeof(u8), SECTOR_SIZE, f);
-    b8 success = n == SECTOR_SIZE;
+    bool success = n == SECTOR_SIZE;
     return success;
 }
 
 // read_file reads an entire file, sector by sector.
-b8 read_file(FILE* f, i32 sector, i32 size, file_t* out_file)
+bool read_file(FILE* f, i32 sector, i32 size, file_t* out_file)
 {
     i32 occupied_sectors = ceil((f32)size / (f32)SECTOR_SIZE);
     for (i32 i = 0; i < occupied_sectors; i++) {

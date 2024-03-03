@@ -14,4 +14,4 @@
 #define KEYDOWN_MAX 64
 
 void keystate_handle_event(const sapp_event* evt);
-b8 keystate_is_down(sapp_keycode key);
+bool keystate_is_down(sapp_keycode key);

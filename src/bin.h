@@ -17,7 +17,7 @@ typedef struct {
     u64 offset;
 } file_t;
 
-b8 read_file(FILE* f, i32 sector, i32 size, file_t* out_file);
+bool read_file(FILE* f, i32 sector, i32 size, file_t* out_file);
 
 u8 read_u8(file_t* f);
 u16 read_u16(file_t* f);

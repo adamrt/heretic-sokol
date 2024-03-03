@@ -69,17 +69,17 @@ typedef struct {
     // Transform to center all vertices.
     vec3 center_transform;
 
-    b8 is_mesh_valid;
-    b8 is_texture_valid;
+    bool is_mesh_valid;
+    bool is_texture_valid;
 } mesh_t;
 
-b8 read_map(int mapnum, mesh_t* out_mesh);
-b8 read_records(file_t* f, record_t* out_records, u16* out_num_records);
-b8 read_mesh(file_t* f, mesh_t* out_mesh);
-b8 read_texture(file_t* f, mesh_t* out_mesh);
-b8 read_palette(file_t* f, mesh_t* out_mesh);
-b8 read_lights(file_t* f, mesh_t* out_mesh);
-b8 read_background(file_t* f, mesh_t* out_mesh);
+bool read_map(int mapnum, mesh_t* out_mesh);
+bool read_records(file_t* f, record_t* out_records, u16* out_num_records);
+bool read_mesh(file_t* f, mesh_t* out_mesh);
+bool read_texture(file_t* f, mesh_t* out_mesh);
+bool read_palette(file_t* f, mesh_t* out_mesh);
+bool read_lights(file_t* f, mesh_t* out_mesh);
+bool read_background(file_t* f, mesh_t* out_mesh);
 
 f32 read_f1x3x12(file_t* f);
 vec3 read_position(file_t* f);
