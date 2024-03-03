@@ -3,47 +3,54 @@
 
 #include "maths.h"
 
-inline vec3 vec3_add(vec3 a, vec3 b) {
-    return (vec3){
+inline vec3 vec3_add(vec3 a, vec3 b)
+{
+    return (vec3) {
         a.x + b.x,
         a.y + b.y,
         a.z + b.z,
     };
 }
 
-inline vec3 vec3_mulf(vec3 v, f32 f) {
-    return (vec3){
+inline vec3 vec3_mulf(vec3 v, f32 f)
+{
+    return (vec3) {
         v.x * f,
         v.y * f,
-        v.z * f
+        v.z * f,
     };
 }
 
-inline vec3 vec3_divf(vec3 v, f32 f) {
-    return (vec3){
+inline vec3 vec3_divf(vec3 v, f32 f)
+{
+    return (vec3) {
         v.x / f,
         v.y / f,
-        v.z / f
+        v.z / f,
     };
 }
 
-inline f32 vec3_length(vec3 v) {
-    return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z);
+inline f32 vec3_length(vec3 v)
+{
+    return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
-inline void vec3_normalize(vec3* v) {
+inline void vec3_normalize(vec3* v)
+{
     const f32 length = vec3_length(*v);
     v->x /= length;
     v->y /= length;
     v->z /= length;
 }
 
-inline vec3 vec3_normalized(vec3 v) {
+inline vec3 vec3_normalized(vec3 v)
+{
     vec3_normalize(&v);
     return v;
 }
 
-inline f32 vec3_dot(vec3 a, vec3 b) {
+inline f32 vec3_dot(vec3 a, vec3 b)
+{
     f32 p = 0;
     p += a.x * b.x;
     p += a.y * b.y;
@@ -51,19 +58,27 @@ inline f32 vec3_dot(vec3 a, vec3 b) {
     return p;
 }
 
-inline vec3 vec3_cross(vec3 a, vec3 b) {
-    return (vec3){
+inline vec3 vec3_cross(vec3 a, vec3 b)
+{
+    return (vec3) {
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
-        a.x * b.y - a.y * b.x};
+        a.x * b.y - a.y * b.x,
+    };
 }
 
-inline vec4 vec3_to_vec4(vec3 v) {
-    return (vec4){v.x, v.y, v.z, 1.0f};
+inline vec4 vec3_to_vec4(vec3 v)
+{
+    return (vec4) {
+        v.x,
+        v.y,
+        v.z,
+        1.0f,
+    };
 }
 
-
-inline mat4 mat4_identity(void) {
+inline mat4 mat4_identity(void)
+{
     mat4 result;
     memset(result.data, 0, sizeof(f32) * 16);
     result.data[0] = 1.0f;
@@ -73,7 +88,8 @@ inline mat4 mat4_identity(void) {
     return result;
 }
 
-inline mat4 mat4_mul(mat4 a, mat4 b) {
+inline mat4 mat4_mul(mat4 a, mat4 b)
+{
     mat4 result = mat4_identity();
 
     const f32* a_ptr = a.data;
@@ -82,11 +98,7 @@ inline mat4 mat4_mul(mat4 a, mat4 b) {
 
     for (i32 i = 0; i < 4; ++i) {
         for (i32 j = 0; j < 4; ++j) {
-            *dst_ptr =
-                a_ptr[0] * b_ptr[0 + j] +
-                a_ptr[1] * b_ptr[4 + j] +
-                a_ptr[2] * b_ptr[8 + j] +
-                a_ptr[3] * b_ptr[12 + j];
+            *dst_ptr = a_ptr[0] * b_ptr[0 + j] + a_ptr[1] * b_ptr[4 + j] + a_ptr[2] * b_ptr[8 + j] + a_ptr[3] * b_ptr[12 + j];
             dst_ptr++;
         }
         a_ptr += 4;
@@ -94,7 +106,8 @@ inline mat4 mat4_mul(mat4 a, mat4 b) {
     return result;
 }
 
-inline mat4 mat4_orthographic(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
+inline mat4 mat4_orthographic(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far)
+{
     mat4 result = mat4_identity();
 
     f32 lr = 1.0f / (left - right);
@@ -111,7 +124,8 @@ inline mat4 mat4_orthographic(f32 left, f32 right, f32 bottom, f32 top, f32 near
     return result;
 }
 
-inline mat4 mat4_perspective(f32 fov_radians, f32 aspect, f32 near, f32 far) {
+inline mat4 mat4_perspective(f32 fov_radians, f32 aspect, f32 near, f32 far)
+{
     f32 half_tan_fov = tanf(fov_radians * 0.5f);
     mat4 result;
     memset(result.data, 0, sizeof(f32) * 16);
@@ -123,7 +137,8 @@ inline mat4 mat4_perspective(f32 fov_radians, f32 aspect, f32 near, f32 far) {
     return result;
 }
 
-inline mat4 mat4_look_at(vec3 position, vec3 target, vec3 up) {
+inline mat4 mat4_look_at(vec3 position, vec3 target, vec3 up)
+{
     mat4 result;
     vec3 z_axis;
     z_axis.x = target.x - position.x;
@@ -154,7 +169,8 @@ inline mat4 mat4_look_at(vec3 position, vec3 target, vec3 up) {
     return result;
 }
 
-inline mat4 mat4_translation(vec3 position) {
+inline mat4 mat4_translation(vec3 position)
+{
     mat4 result = mat4_identity();
     result.data[12] = position.x;
     result.data[13] = position.y;
@@ -162,7 +178,8 @@ inline mat4 mat4_translation(vec3 position) {
     return result;
 }
 
-inline mat4 mat4_scale(vec3 scale) {
+inline mat4 mat4_scale(vec3 scale)
+{
     mat4 result = mat4_identity();
     result.data[0] = scale.x;
     result.data[5] = scale.y;
@@ -174,11 +191,10 @@ inline mat4 mat4_scale(vec3 scale) {
 // Utilities
 //
 
-inline f32 radians(f32 degrees) {
-    return degrees * DEG2RAD_MUL;
-}
+inline f32 radians(f32 degrees) { return degrees * DEG2RAD_MUL; }
 
-inline f32 clamp(f32 value, f32 min, f32 max) {
+inline f32 clamp(f32 value, f32 min, f32 max)
+{
     if (value <= min) {
         return min;
     }

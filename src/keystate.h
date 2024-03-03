@@ -13,5 +13,5 @@
 #define BIT_MASK(key) (1 << ((key) % 8))
 #define KEYDOWN_MAX 64
 
-void keystate_handle_event(const sapp_event *evt);
-b8   keystate_is_down(sapp_keycode key);
+void keystate_handle_event(const sapp_event* evt);
+b8 keystate_is_down(sapp_keycode key);

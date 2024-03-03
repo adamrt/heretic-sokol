@@ -5,10 +5,18 @@
 #define PI 3.14159265358979323846f
 #define DEG2RAD_MUL (PI / 180.0f)
 
-typedef struct { f32 x, y; } vec2;
-typedef struct { f32 x, y, z; } vec3;
-typedef struct { f32 x, y, z, w; } vec4;
-typedef struct { f32 data[16]; } mat4;
+typedef struct {
+    f32 x, y;
+} vec2;
+typedef struct {
+    f32 x, y, z;
+} vec3;
+typedef struct {
+    f32 x, y, z, w;
+} vec4;
+typedef struct {
+    f32 data[16];
+} mat4;
 
 vec3 vec3_add(vec3 a, vec3 b);
 vec3 vec3_mulf(vec3 v, f32 f);

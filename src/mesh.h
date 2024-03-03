@@ -6,30 +6,30 @@
 #include "defines.h"
 #include "maths.h"
 
-#define GNS_MAX_SIZE   2388
+#define GNS_MAX_SIZE 2388
 #define RECORD_MAX_NUM 100
 
 #define MAX_VERTS 5000
 
 #define TEXTURE_WIDTH 256
 #define TEXTURE_HEIGHT 1024
-#define TEXTURE_NUM_PIXELS 262144 // 256 * 1024
+#define TEXTURE_NUM_PIXELS 262144      // 256 * 1024
 #define TEXTURE_NUM_BYTES (262144 * 4) // 256 * 1024 * 4
 #define TEXTURE_RAW_SIZE (TEXTURE_NUM_PIXELS / 2)
 
 #define PALETTE_NUM_BYTES (16 * 16 * 4)
 
 enum Resource {
-    ResourceTexture      = 0x1701,
-    ResourceMeshPrimary  = 0x2E01,
+    ResourceTexture = 0x1701,
+    ResourceMeshPrimary = 0x2E01,
     ResourceMeshOverride = 0x2F01,
-    ResourceMeshAlt      = 0x3001,
-    ResourceEnd          = 0x3101,
+    ResourceMeshAlt = 0x3001,
+    ResourceEnd = 0x3101,
 };
 
 enum Time {
-  TimeDay,
-  TimeNight,
+    TimeDay,
+    TimeNight,
 };
 
 // record_t represents a GNS record.
@@ -37,16 +37,16 @@ typedef struct {
     u16 sector;
     u64 len;
     u16 type;
-    u8  arrangement;
-    u8  time;
-    u8  weather;
+    u8 arrangement;
+    u8 time;
+    u8 weather;
 } record_t;
 
 typedef struct {
     vec3 position;
     vec3 normal;
     vec2 texcoords;
-    f32  palette;
+    f32 palette;
 } vertex_t;
 
 typedef struct {
@@ -75,16 +75,16 @@ typedef struct {
     b8 is_texture_valid;
 } mesh_t;
 
-b8 read_map(int mapnum, mesh_t *out_mesh);
-b8 read_records(file_t *f, record_t *out_records, u16 *out_num_records);
-b8 read_mesh(file_t *f, mesh_t *out_mesh);
-b8 read_texture(file_t *f, mesh_t *out_mesh);
-b8 read_palette(file_t *f, mesh_t *out_mesh);
-b8 read_lights(file_t *f, mesh_t *out_mesh);
-b8 read_background(file_t *f, mesh_t *out_mesh);
+b8 read_map(int mapnum, mesh_t* out_mesh);
+b8 read_records(file_t* f, record_t* out_records, u16* out_num_records);
+b8 read_mesh(file_t* f, mesh_t* out_mesh);
+b8 read_texture(file_t* f, mesh_t* out_mesh);
+b8 read_palette(file_t* f, mesh_t* out_mesh);
+b8 read_lights(file_t* f, mesh_t* out_mesh);
+b8 read_background(file_t* f, mesh_t* out_mesh);
 
-f32  read_f1x3x12(file_t *f);
-vec3 read_position(file_t *f);
-vec3 read_normal(file_t *f);
-vec4 read_rgb15(file_t *f);
-vec3 read_rgb8(file_t *f);
+f32 read_f1x3x12(file_t* f);
+vec3 read_position(file_t* f);
+vec3 read_normal(file_t* f);
+vec4 read_rgb15(file_t* f);
+vec3 read_rgb8(file_t* f);
